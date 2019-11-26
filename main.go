@@ -15,7 +15,9 @@ import (
 func repeatHandler(r int) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var buffer bytes.Buffer
+		log.Printf("r: "+r, 200)
 		for i := 0; i < r; i++ {
+			log.Printf("i: "+i, 200)
 			buffer.WriteString("Hello from Go!\n")
 		}
 		c.String(http.StatusOK, buffer.String())
@@ -30,12 +32,13 @@ func main() {
 	}
 
 	tStr := os.Getenv("REPEAT")
+	log.Printf("REPEAT: "+tStr)
 	repeat, err := strconv.Atoi(tStr)
 	if err != nil {
 		log.Printf("Error converting $REPEAT to an int: %q - Using default\n", err)
 		repeat = 5
 	} else {
-		log.Printf("SEM NENHUM ERRO")
+		log.Printf("SEM NENHUM ERRO", 200)
 	}
 
 	router := gin.New()
