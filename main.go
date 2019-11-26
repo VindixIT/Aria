@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/heroku/x/hmetrics/onload"
 	"github.com/russross/blackfriday"
+	"fmt"
 )
 
 func repeatHandler(r int) gin.HandlerFunc {
