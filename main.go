@@ -33,13 +33,13 @@ func main() {
 	}
 
 	tStr := os.Getenv("REPEAT")
-	log.Printf("REPEAT: "+tStr)
+	fmt.Println("REPEAT: "+tStr)
 	repeat, err := strconv.Atoi(tStr)
 	if err != nil {
-		log.Printf("Error converting $REPEAT to an int: %q - Using default\n", err)
-		repeat = 5
+		fmt.Println("Error converting $REPEAT to an int: %q - Using default\n", err)
+		repeat = 6
 	} else {
-		log.Printf("SEM NENHUM ERRO", 200)
+		fmt.Println("SEM NENHUM ERRO", 200)
 	}
 
 	router := gin.New()
