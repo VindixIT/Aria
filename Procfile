@@ -1,1 +1,1 @@
-web: go-getting-started.exe
+web: go-getting-started
