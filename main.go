@@ -15,9 +15,9 @@ import (
 func repeatHandler(r int) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var buffer bytes.Buffer
-		log.Printf("r: "+r, 200)
+		fmt.Println("r=",r)
 		for i := 0; i < r; i++ {
-			log.Printf("i: "+i, 200)
+			fmt.Println("i=",i)
 			buffer.WriteString("Hello from Go!\n")
 		}
 		c.String(http.StatusOK, buffer.String())
