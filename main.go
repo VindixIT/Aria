@@ -34,6 +34,8 @@ func main() {
 	if err != nil {
 		log.Printf("Error converting $REPEAT to an int: %q - Using default\n", err)
 		repeat = 5
+	} else {
+		log.Printf("SEM NENHUM ERRO")
 	}
 
 	router := gin.New()
