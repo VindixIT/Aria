@@ -96,7 +96,7 @@ func main() {
 
 	router.GET("/db", dbFunc(db))
 
-	router.GET("/patients", patients.WriteName())
+	router.GET("/patients", Write())
 
 	router.Run(":" + port)
 }

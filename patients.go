@@ -1,10 +1,17 @@
 package main
 
 import (
-	"fmt"
+	"bytes"
+	"net/http"
+	"github.com/gin-gonic/gin"
+	_ "github.com/heroku/x/hmetrics/onload"
+	_ "github.com/lib/pq"
 )
 
-func WriteName() string {
-	const name, age = "Fábio", 24
-	fmt.Printf("%s is %d years old.\n", name, age)
+func Write() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var buffer bytes.Buffer
+		buffer.WriteString("Patients!\n")
+		c.String(http.StatusOK, buffer.String())
+	}
 }
