@@ -28,7 +28,7 @@ func repeatHandler(r int) gin.HandlerFunc {
 
 func dbFunc(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if _, err := db.Exec("CREATE TABLE IF NOT EXISTS ticks (tick timestamp)"); err != nil {
+		if _, err := db.Exec("CREATE TABLE IF NOT EXISTS patients (tick timestamp)"); err != nil {
 			c.String(http.StatusInternalServerError,
 				fmt.Sprintf("Error creating database table: %q", err))
 			return
@@ -95,6 +95,8 @@ func main() {
 	router.GET("/repeat", repeatHandler(repeat))
 
 	router.GET("/db", dbFunc(db))
+
+	router.GET("/patients", patients.WriteName())
 
 	router.Run(":" + port)
 }
