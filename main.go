@@ -31,7 +31,7 @@ func InitDataBase(db *sql.DB) gin.HandlerFunc {
 	InitPatientsTable(db)
 	InitFoodsTable(db)
 	c.String(http.StatusOK, "Sucesso")
-	return
+	return nil
 }
 
 func dbFunc(db *sql.DB) gin.HandlerFunc {
