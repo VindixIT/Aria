@@ -22,10 +22,10 @@ func InitPatientsTable(db *sql.DB) gin.HandlerFunc {
 			" height decimal(3,3) NULL, " +
 			" birth date NULL, " +
 			" sex boolean NULL, " +
-			" phone varchar2 NULL, " +
-			" city varchar2 NULL, " +
-			" email varchar2 NULL, " +
-			" name varchar2 NOT NULL " +
+			" phone varchar(20) NULL, " +
+			" city varchar(255) NULL, " +
+			" email varchar(255) NULL, " +
+			" name varchar(255) NOT NULL " +
 			" )"); err != nil {
 			c.String(http.StatusInternalServerError, fmt.Sprintf("Error creating database table: %q", err))
 			return
