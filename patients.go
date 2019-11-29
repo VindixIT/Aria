@@ -1,4 +1,4 @@
-package dao
+package main
 
 import (	
 	"net/http"
@@ -11,7 +11,7 @@ import (
 
 func InitPatientsTable(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		db.Exec(" DROP TABLE patients")
+		//db.Exec(" DROP TABLE patients")
 		if _, err := db.Exec(
 			" CREATE TABLE IF NOT EXISTS patients ( " +
 			" id smallint, "+

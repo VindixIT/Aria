@@ -9,7 +9,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"go-getting-started/dao"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/heroku/x/hmetrics/onload"
@@ -27,7 +26,7 @@ func repeatHandler(r int) gin.HandlerFunc {
 	}
 }
 
-func initDatabase(db *sql.DB) gin.HandlerFunc {
+func InitDataBase(db *sql.DB) gin.HandlerFunc {
 	return InitPatientsTable(db)
 }
 
