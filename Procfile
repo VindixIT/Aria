@@ -1,1 +1,1 @@
-web: bin/Aria
+web: bin/aria
