@@ -11,7 +11,7 @@ import (
 
 func InitPatientsTable(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		//db.Exec(" DROP TABLE patients")
+		db.Exec(" DROP TABLE patients")
 		if _, err := db.Exec(
 			" CREATE TABLE IF NOT EXISTS patients ( " +
 			" id smallint, "+
@@ -28,7 +28,6 @@ func InitPatientsTable(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		// defer rows.Close()
 		for rows.Next() { 
 			var cname string
 			if err := rows.Scan(&cname); err != nil {
@@ -40,5 +39,6 @@ func InitPatientsTable(db *sql.DB) gin.HandlerFunc {
 		}
 		var count int
 		c.String(http.StatusOK, fmt.Sprintf("SUCESSO: %s\n", rows.Scan(&count)))
+		defer rows.Close()
 	}
 }
