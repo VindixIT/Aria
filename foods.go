@@ -10,9 +10,9 @@ import (
 )
 
 func InitFoodsTable(db *sql.DB, c *gin.Context) {
-/*		if _, err := db.Exec(" DROP TABLE foods"); err != nil {
+		if _, err := db.Exec(" DROP TABLE foods"); err != nil {
 			c.String(http.StatusInternalServerError, fmt.Sprintf("Error droping database table: %q\n", err))
-		}*/
+		}
 		if _, err := db.Exec(
 			" CREATE TABLE IF NOT EXISTS foods ( " +
 			" id SERIAL PRIMARY KEY, "+
