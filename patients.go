@@ -9,7 +9,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func InitPatientsTable(db *sql.DB) gin.HandlerFunc {
+func InitPatientsTable(db *sql.DB, c *gin.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if _, err := db.Exec(" DROP TABLE patients"); err != nil {
 			c.String(http.StatusInternalServerError, fmt.Sprintf("Error droping database table: %q\n", err))

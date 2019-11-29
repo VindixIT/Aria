@@ -27,11 +27,11 @@ func repeatHandler(r int) gin.HandlerFunc {
 }
 
 func InitDataBase(db *sql.DB) gin.HandlerFunc {
-	var c *gin.Context
-	InitPatientsTable(db)
-	InitFoodsTable(db)
-	c.String(http.StatusOK, "Sucesso")
-	return nil
+	return func(c *gin.Context) {
+		InitPatientsTable(db, c)
+		InitFoodsTable(db, c)
+		c.String(http.StatusOK, "Sucesso")
+	}
 }
 
 func dbFunc(db *sql.DB) gin.HandlerFunc {
