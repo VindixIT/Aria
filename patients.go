@@ -29,7 +29,7 @@ func InitPatientsTable(db *sql.DB) gin.HandlerFunc {
 		}
 
 		defer rows.Close()
-		for rows.Next() {
+		for rows.Next() { 
 			var cname string
 			if err := rows.Scan(&cname); err != nil {
 				c.String(http.StatusInternalServerError,
@@ -38,5 +38,7 @@ func InitPatientsTable(db *sql.DB) gin.HandlerFunc {
 			}
 			c.String(http.StatusOK, fmt.Sprintf("Read from DB: %s\n", cname))
 		}
+		var count int
+		c.String(http.StatusOK, fmt.Sprintf("SUCESSO: %s\n", rows.Scan(&count)))
 	}
 }
