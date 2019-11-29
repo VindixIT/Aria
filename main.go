@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"go-getting-started/dao"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/heroku/x/hmetrics/onload"
@@ -24,6 +25,10 @@ func repeatHandler(r int) gin.HandlerFunc {
 		}
 		c.String(http.StatusOK, buffer.String())
 	}
+}
+
+func initDatabase(db *sql.DB) gin.HandlerFunc {
+	return InitPatientsTable(db)
 }
 
 func dbFunc(db *sql.DB) gin.HandlerFunc {
@@ -96,7 +101,7 @@ func main() {
 
 	router.GET("/db", dbFunc(db))
 
-	router.GET("/patients", Write())
+	router.GET("/initDatabase", InitDataBase(db))
 
 	router.Run(":" + port)
 }
