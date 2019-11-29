@@ -100,7 +100,7 @@ func main() {
 
 	router.GET("/db", dbFunc(db))
 
-	router.GET("/initDatabase", InitDataBase(db))
+	router.GET("/initDB", InitDataBase(db))
 
 	router.Run(":" + port)
 }

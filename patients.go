@@ -11,12 +11,21 @@ import (
 
 func InitPatientsTable(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		db.Exec(" DROP TABLE patients")
+		if _, err := db.Exec(" DROP TABLE patients"); err != nil {
+			c.String(http.StatusInternalServerError, fmt.Sprintf("Error creating database table: %q", err))
+			return
+		}
 		if _, err := db.Exec(
 			" CREATE TABLE IF NOT EXISTS patients ( " +
-			" id smallint, "+
-			" weight decimal(3,3), "+
-			" age smallint" +
+			" id SERIAL PRIMARY KEY, "+
+			" weight decimal(3,3) NULL, "+
+			" height decimal(3,3) NULL, " +
+			" birth date NULL, " +
+			" sex boolean NULL, " +
+			" phone varchar2 NULL, " +
+			" city varchar2 NULL, " +
+			" email varchar2 NULL, " +
+			" name varchar2 NOT NULL " +
 			" )"); err != nil {
 			c.String(http.StatusInternalServerError, fmt.Sprintf("Error creating database table: %q", err))
 			return
@@ -38,7 +47,7 @@ func InitPatientsTable(db *sql.DB) gin.HandlerFunc {
 			c.String(http.StatusOK, fmt.Sprintf("Read from DB: %s\n", cname))
 		}
 		var count int
-		c.String(http.StatusOK, fmt.Sprintf("SUCESSO: %s\n", rows.Scan(&count)))
-		defer rows.Close()
+		c.String(http.StatusOK, fmt.Sprintf("SUCCESS: %s\n", rows.Scan(&count)))
+		defer rows.Close() 
 	}
 }
