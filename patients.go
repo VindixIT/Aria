@@ -21,7 +21,7 @@ func InitPatientsTable(db *sql.DB) gin.HandlerFunc {
 			c.String(http.StatusInternalServerError, fmt.Sprintf("Error creating database table: %q", err))
 			return
 		}
-		rows, err := db.Query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = 'patients'")
+		rows, err := db.Query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = 'teste'")
 		if err != nil {
 			c.String(http.StatusInternalServerError,
 				fmt.Sprintf("Error reading patients columns names: %q", err))
