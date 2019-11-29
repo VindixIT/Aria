@@ -29,8 +29,7 @@ func repeatHandler(r int) gin.HandlerFunc {
 func InitDataBase(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		InitPatientsTable(db, c)
-		InitFoodsTable(db, c)
-		c.String(http.StatusOK, "Sucesso")
+		InitFoodsTable(db, c)		
 	}
 }
 
