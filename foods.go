@@ -16,7 +16,6 @@ func InitFoodsTable(db *sql.DB, c *gin.Context) {
 		if _, err := db.Exec(
 			" CREATE TABLE IF NOT EXISTS foods ( " +
 			" id SERIAL PRIMARY KEY, "+
-			" group int, "+
 			" name varchar(255) NOT NULL " +
 			" )"); err != nil {
 			c.String(http.StatusInternalServerError, fmt.Sprintf("Error creating database table: %q\n", err))
