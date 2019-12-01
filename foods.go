@@ -42,3 +42,14 @@ func InitFoodsTable(db *sql.DB, c *gin.Context) {
 		c.String(http.StatusOK, fmt.Sprintf("Success: %s\n", rows.Scan(&count)))
 		defer rows.Close() 
 }
+
+func Insert(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+        Enum := r.FormValue("Enum")
+		Name := r.FormValue("Name")
+		Id := r.FormValue("Id")
+		if _, err := db.Prepare("INSERT INTO Food (Enum, Name, Id) VALUES (?,?,?)"); err != nil {
+		c.String(http.StatusInternalServerError,
+			fmt.Sprintf("Error incrementing Food: %q", err))
+	return
+}
