@@ -1,7 +1,9 @@
 package main
 
 import (	
+	"log"
 	"net/http"
+	"os"
 	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -44,12 +46,20 @@ func InitFoodsTable(db *sql.DB, c *gin.Context) {
 }
 
 func Insert(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-        Enum := r.FormValue("Enum")
-		Name := r.FormValue("Name")
-		Id := r.FormValue("Id")
-		if _, err := db.Prepare("INSERT INTO Food (Enum, Name, Id) VALUES (?,?,?)"); err != nil {
-		c.String(http.StatusInternalServerError,
-			fmt.Sprintf("Error incrementing Food: %q", err))
-	return
+		if r.Method == "POST" {
+			name := r.FormValue("Name")
+			grp := r.FormValue("Group")
+			db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+			if err != nil {
+				log.Fatalf("Error opening database: %q", err)
+			}
+			insForm, err := db.Prepare("INSERT INTO foods (name, grp) VALUES (?,?)")
+			if err != nil {
+				panic(err.Error())
+			insForm.Exec(name, grp)
+			defer db.Close()
+			http.Redirect(w, r, "/foods", 301)
+		return
+		}	
+	}
 }
