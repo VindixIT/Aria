@@ -12,7 +12,8 @@ func main(){
 	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatalf("Error opening database: %q", err)
-	}	
+	}
+	db.Query("SELECT 1")	
 }
 
 func Index(w http.ResponseWriter, r *http.Request){
