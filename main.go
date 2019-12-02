@@ -13,7 +13,8 @@ func main(){
 	if err != nil {
 		log.Fatalf("Error opening database: %q", err)
 	}
-	db.Query("SELECT 1")	
+	db.Query("SELECT 1")
+	log.Println("select")	
 }
 
 func Index(w http.ResponseWriter, r *http.Request){
