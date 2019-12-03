@@ -1,1 +1,1 @@
-web: bin/Aria.exe
+web: bin\Aria.exe
