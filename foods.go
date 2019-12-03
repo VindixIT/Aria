@@ -3,69 +3,70 @@ package main
 import (	
 	"log"
 	"net/http"
-	"os"
 	"database/sql"
-	"fmt"
-	"github.com/gin-gonic/gin"
+	"strconv"
 	_ "github.com/heroku/x/hmetrics/onload"
 	_ "github.com/lib/pq"
 )
-type Foods struct {
-    id    int
-    group  string
-    name string
+type Food struct {
+    Id    int
+    Group  string
+    Name string
 }
-func InitFoodsTable(db *sql.DB, c *gin.Context) {
-		if _, err := db.Exec(
-			" CREATE TABLE IF NOT EXISTS foods ( " +
-			" id SERIAL PRIMARY KEY, "+
-			" grp varchar(20) NOT NULL, "+
-			" name varchar(255) NOT NULL " +
-			" )"); err != nil {
-			c.String(http.StatusInternalServerError, fmt.Sprintf("Error creating database table: %q\n", err))
-			return
-		}
-		
-
-		/*if _, err := db.Exec("DROP TABLE foods"); err != nil {
-			c.String(http.StatusInternalServerError, fmt.Sprintf("Error droping database table: %q\n", err))
-		}*/
-		/*rows, err := db.Query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = 'foods'")
-		if err != nil {
-			c.String(http.StatusInternalServerError,
-				fmt.Sprintf("Error reading patients columns names: %q\n", err))
-			return
-		}
-
-		for rows.Next() { 
-			var cname string
-			if err := rows.Scan(&cname); err != nil {
-				c.String(http.StatusInternalServerError,
-					fmt.Sprintf("Error scanning information_schema.COLUMNS: %q\n", err))
-				return
-			}
-			c.String(http.StatusOK, fmt.Sprintf("Read from DB: %s\n", cname))
-		}
-		var count int
-		c.String(http.StatusOK, fmt.Sprintf("Success: %s\n", rows.Scan(&count)))
-		defer rows.Close() */
-}
-
-func Insert(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "POST" {
-			name := r.FormValue("Name")
-			grp := r.FormValue("Group")
-			db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
-			if err != nil {
-				log.Fatalf("Error opening database: %q", err)
-			}
-			insForm, err := db.Prepare("INSERT INTO foods (name, grp) VALUES (?,?)")
-			if err != nil {
-				panic(err.Error())
-			insForm.Exec(name, grp)
-			defer db.Close()
-			http.Redirect(w, r, "/foods", 301)
+func InitFoodsTable(db *sql.DB) {
+	if _, err := db.Exec(
+		" CREATE TABLE IF NOT EXISTS foods ( " +
+		" id SERIAL PRIMARY KEY, "+
+		" grp varchar(20) NOT NULL, "+
+		" name varchar(255) NOT NULL " +
+		" )"); err != nil {
+			log.Fatalf("Error creating database: %q", err)
 		return
-		}	
 	}
+}
+
+func ListFoods(w http.ResponseWriter, r *http.Request){
+	db := dbConn()
+	log.Println("Index")
+	selDB, err := db.Query("SELECT * FROM Foods ORDER BY id DESC")
+    if err != nil {
+        panic(err.Error())
+	}
+	food := Food{}
+    res := []Food{}
+	for selDB.Next() {
+		var id int
+        var group, name string
+        err = selDB.Scan(&id, &group, &name)
+        if err != nil {
+            panic(err.Error())
+        }
+        food.Id = id
+        food.Name = name
+        food.Group = group
+        res = append(res, food)
+	}
+	tmpl.ExecuteTemplate(w, "ListFoods", res)
+	defer db.Close()
+}
+
+func InsertFood(w http.ResponseWriter, r *http.Request) {
+    db := dbConn()
+    if r.Method == "POST" {
+        name := r.FormValue("name")
+        group := r.FormValue("group")
+		sqlStatement := "INSERT INTO Foods(name,grp) VALUES ($1,$2) RETURNING id"
+		id := 0
+		err := db.QueryRow(sqlStatement, name, group).Scan(&id)
+        if err != nil {
+            panic(err.Error())
+        }        
+        log.Println("INSERT: Id: " + strconv.Itoa(id) +" | Name: " + name + " | Group: " + group)
+    }
+    defer db.Close()
+    http.Redirect(w, r, "/", 301)
+}
+
+func NewFood(w http.ResponseWriter, r *http.Request) {
+	tmpl.ExecuteTemplate(w, "NewFood", nil)
 }
