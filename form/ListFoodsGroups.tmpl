@@ -1,12 +1,11 @@
-{{ define "ListFoods" }}
+{{ define "ListFoodsGroups" }}
   {{ template "Header" }}
     {{ template "Menu"  }}
-    <h2> Foods Registered </h2>
+    <h2> Foods Groups Registered </h2>
     <table border="1">
       <thead>
       <tr>
         <td>ID</td>
-        <td>Group</td>
         <td>Name</td>
         <td>View</td>
         <td>Edit</td>
@@ -17,7 +16,6 @@
     {{ range . }}
       <tr>
         <td> {{ .Id }} </td>
-        <td> {{ .Group }} </td>
         <td> {{ .Name }} </td>
         <td><a href="/showF?id={{ .Id }}">View</a></td>
         <td><a href="/editF?id={{ .Id }}">Edit</a></td>

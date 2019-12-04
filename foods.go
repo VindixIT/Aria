@@ -11,13 +11,15 @@ import (
 type Food struct {
     Id    int
     Group  string
+    GroupId  int
+    Groups []FoodGroup
     Name string
 }
 func InitFoodsTable(db *sql.DB) {
 	if _, err := db.Exec(
-		" CREATE TABLE IF NOT EXISTS foods ( " +
+		" CREATE TABLE IF NOT EXISTS Foods ( " +
 		" id SERIAL PRIMARY KEY, "+
-		" grp varchar(20) NOT NULL, "+
+		" grp_id integer references Foods_Groups, "+
 		" name varchar(255) NOT NULL " +
 		" )"); err != nil {
 			log.Fatalf("Error creating database: %q", err)
@@ -28,22 +30,25 @@ func InitFoodsTable(db *sql.DB) {
 func ListFoods(w http.ResponseWriter, r *http.Request){
 	db := dbConn()
 	log.Println("Index")
-	selDB, err := db.Query("SELECT * FROM Foods ORDER BY id DESC")
+    selDB, err := db.Query("SELECT A.id, A.name, B.id, B.name as grp_name "+
+    " FROM Foods A left join Foods_Groups B "+
+    " on A.grp_id = B.id ORDER BY id DESC")
     if err != nil {
         panic(err.Error())
 	}
 	food := Food{}
     res := []Food{}
 	for selDB.Next() {
-		var id int
+        var id, groupid int
         var group, name string
-        err = selDB.Scan(&id, &group, &name)
+        err = selDB.Scan(&id, &name, &groupid, &group)
         if err != nil {
             panic(err.Error())
         }
         food.Id = id
         food.Name = name
         food.Group = group
+        food.GroupId = groupid
         res = append(res, food)
 	}
 	tmpl.ExecuteTemplate(w, "ListFoods", res)
@@ -53,7 +58,8 @@ func ListFoods(w http.ResponseWriter, r *http.Request){
 func ShowFood(w http.ResponseWriter, r *http.Request) {
     db := dbConn()
     nId := r.URL.Query().Get("id")
-    selDB, err := db.Query("SELECT * FROM Foods WHERE id=?", nId)
+    selDB, err := db.Query("SELECT a.id, a.name, b.name as grp_name FROM Foods a"+
+    " left join Foods_Groups b on a.grp_id = b.id WHERE a.id=$1 ORDER BY id DESC", nId)
     if err != nil {
         panic(err.Error())
     }
@@ -73,13 +79,56 @@ func ShowFood(w http.ResponseWriter, r *http.Request) {
     defer db.Close()
 }
 
+func EditFood(w http.ResponseWriter, r *http.Request) {
+    db := dbConn()
+    nId := r.URL.Query().Get("id")
+    selDB, err := db.Query("SELECT id, name, grp_id FROM Foods WHERE id=$1", nId)
+    if err != nil {
+        panic(err.Error())
+    }
+    food := Food{}
+    for selDB.Next() {
+        var id, groupid  int
+        var name string
+        err = selDB.Scan(&id, &name, &groupid)
+        if err != nil {
+            panic(err.Error())
+        }
+        food.Id = id
+        food.Name = name
+        food.GroupId = groupid
+    }
+    selGroupsDB, err := db.Query("SELECT id, name FROM Foods_Groups")
+    if err != nil {
+        panic(err.Error())
+    }
+    foodGroup := FoodGroup{}
+    groups := []FoodGroup{}
+    for selGroupsDB.Next() {
+        var id int
+        var name string
+        err = selGroupsDB.Scan(&id, &name)
+        if err != nil {
+            panic(err.Error())
+        }
+        foodGroup.Id = id
+        foodGroup.Name = name
+        if eq id food.GroupId
+            foodGroup.Selected := true
+        end
+        groups = append(groups, foodGroup)
+    }
+    food.Groups = groups
+    tmpl.ExecuteTemplate(w, "EditFood", food)
+    defer db.Close()
+}
 
 func InsertFood(w http.ResponseWriter, r *http.Request) {
     db := dbConn()
     if r.Method == "POST" {
         name := r.FormValue("name")
         group := r.FormValue("group")
-		sqlStatement := "INSERT INTO Foods(name,grp) VALUES ($1,$2) RETURNING id"
+		sqlStatement := "INSERT INTO Foods(name,grp_id) VALUES ($1,$2) RETURNING id"
 		id := 0
 		err := db.QueryRow(sqlStatement, name, group).Scan(&id)
         if err != nil {
@@ -91,6 +140,55 @@ func InsertFood(w http.ResponseWriter, r *http.Request) {
     http.Redirect(w, r, "/", 301)
 }
 
+func UpdateFood(w http.ResponseWriter, r *http.Request) {
+    db := dbConn()
+    if r.Method == "POST" {
+        name := r.FormValue("name")
+        group := r.FormValue("group")
+		id := r.FormValue("uid")
+		sqlStatement := "UPDATE Foods SET name=$1, grp_id=$2 WHERE id=$3"
+		updtForm, err := db.Prepare(sqlStatement)
+        if err != nil {
+            panic(err.Error())
+		}    
+		updtForm.Exec(name, group, id)    
+        log.Println("UPDATE: Id: " + id +" | Name: " + name + " | Group: " + group)
+    }
+    defer db.Close()
+    http.Redirect(w, r, "/", 301)
+}
+
+func DeleteFood(w http.ResponseWriter, r *http.Request) {
+    db := dbConn()
+    id := r.URL.Query().Get("id")
+    delForm, err := db.Prepare("DELETE FROM Foods WHERE id=$1")
+    if err != nil {
+        panic(err.Error())
+    }
+    delForm.Exec(id)
+    log.Println("DELETE: Id: " + id)
+    defer db.Close()
+    http.Redirect(w, r, "/", 301)
+}
+
 func NewFood(w http.ResponseWriter, r *http.Request) {
-	tmpl.ExecuteTemplate(w, "NewFood", nil)
+    db := dbConn()
+    selDB, err := db.Query("SELECT id, name FROM Foods_Groups")
+    if err != nil {
+        panic(err.Error())
+    }
+    foodGroup := FoodGroup{}
+    groups := []FoodGroup{}
+    for selDB.Next() {
+        var id int
+        var name string
+        err = selDB.Scan(&id, &name)
+        if err != nil {
+            panic(err.Error())
+        }
+        foodGroup.Id = id
+        foodGroup.Name = name
+        groups = append(groups, foodGroup)
+    }    
+	tmpl.ExecuteTemplate(w, "NewFood", groups)
 }

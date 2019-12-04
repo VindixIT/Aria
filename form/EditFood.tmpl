@@ -1,0 +1,23 @@
+{{ define "EditFood" }}
+  {{ template "Header" }}
+    {{ template "Menu" }} 
+   <h2>Edit Food</h2>  
+    <form method="POST" action="updateF">
+      <input type="hidden" name="uid" value="{{ .Id }}" />
+      <label> Name </label><input type="text" name="name" value="{{ .Name }}"  /><br />
+      <label> Group </label>
+        <select id="group" name="group">        
+            {{range $g := .Groups}}          
+					  <option value="{{ $g.Id }}" id="{{ $g.Id }}">
+            {{ $g.Name }}
+            {{ if eq $g.Id $g.Selected }} 
+              DEU CERTO 
+            {{end}}
+            </option>
+          {{ end }}
+				</select>
+      <br />
+      <input type="submit" value="Save Food" />
+    </form><br />    
+  {{ template "Footer" }}
+{{ end }}

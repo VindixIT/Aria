@@ -1,8 +1,8 @@
-{{ define "ShowFood" }}
+{{ define "ShowFoodGroup" }}
   {{ template "Header" }}
     {{ template "Menu"  }}
     <h2> Register {{ .Id }} </h2>
       <p>Name: {{ .Name }}</p>
       <p>Group:  {{ .Group }}</p><br /> <a href="/editF?id={{ .Id }}">Edit</a></p>
   {{ template "Footer" }}
-{{ end }}
+{{ end }} 

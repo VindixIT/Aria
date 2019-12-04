@@ -1,11 +1,17 @@
 {{ define "NewFood" }}
   {{ template "Header" }}
     {{ template "Menu" }} 
-   <h2>New Name and Group</h2>  
-    <form method="POST" action="insert">
+   <h2>New Food</h2>  
+    <form method="POST" action="insertF">
       <label> Name </label><input type="text" name="name" /><br />
-      <label> Group </label><input type="text" name="group" /><br />
-      <input type="submit" value="Save user" />
+      <label> Group </label>
+        <select id="group" name="group">
+          {{ range . }}
+					  <option value="{{ .Id }}" id="{{ .Id }}">{{ .Name }}</option>
+          {{ end }}
+				</select>
+      <br />
+      <input type="submit" value="Save Food" />
     </form>
   {{ template "Footer" }}
 {{ end }}

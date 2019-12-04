@@ -1,0 +1,10 @@
+{{ define "NewFoodGroup" }}
+  {{ template "Header" }}
+    {{ template "Menu" }} 
+   <h2>New Food Group</h2>  
+    <form method="POST" action="insertFG">
+      <label> Name </label><input type="text" name="name" /><br />
+      <input type="submit" value="Save Group" />
+    </form>
+  {{ template "Footer" }}
+{{ end }}

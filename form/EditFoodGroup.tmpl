@@ -1,0 +1,12 @@
+{{ define "EditFoodGroup" }}
+  {{ template "Header" }}
+    {{ template "Menu" }} 
+   <h2>Edit Name and Group</h2>  
+    <form method="POST" action="updateF">
+      <input type="hidden" name="uid" value="{{ .Id }}" />
+      <label> Name </label><input type="text" name="name" value="{{ .Name }}"  /><br />
+      <label> Group </label><input type="text" name="group" value="{{ .Group }}"  /><br />
+      <input type="submit" value="Save Food" />
+    </form><br />    
+  {{ template "Footer" }}
+{{ end }}

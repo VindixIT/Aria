@@ -12,6 +12,7 @@ import (
 var tmpl = template.Must(template.ParseGlob("form/*"))
 
 func InitDB(db * sql.DB){
+	InitFoodsGroupsTable(db) // a ordem é importante.
 	InitFoodsTable(db)
 	log.Println("InitDB Sucesso")
 }
@@ -34,13 +35,21 @@ func main(){
 
 	InitDB(database)
 
-	http.HandleFunc("/", ListFoods)
-	http.HandleFunc("/new", NewFood)
-	http.HandleFunc("/show", ShowFood)
-//	http.HandleFunc("/edit", EditFood)
-	http.HandleFunc("/insert", InsertFood)
-//	http.HandleFunc("/update", UpdateFood)
-//	http.HandleFunc("/delete", DeleteFood)
+	http.HandleFunc("/", ListFoodsGroups)
+	http.HandleFunc("/listF", ListFoods)
+	http.HandleFunc("/listFG", ListFoodsGroups)
+	http.HandleFunc("/newF", NewFood)
+	http.HandleFunc("/showF", ShowFood)
+	http.HandleFunc("/editF", EditFood)
+	http.HandleFunc("/insertF", InsertFood)
+	http.HandleFunc("/updateF", UpdateFood)
+	http.HandleFunc("/deleteF", DeleteFood)
+	http.HandleFunc("/newFG", NewFoodGroup)
+	http.HandleFunc("/showFG", ShowFoodGroup)
+	http.HandleFunc("/editFG", EditFoodGroup)
+	http.HandleFunc("/insertFG", InsertFoodGroup)
+	http.HandleFunc("/updateFG", UpdateFoodGroup)
+	http.HandleFunc("/deleteFG", DeleteFoodGroup)
 
 	http.ListenAndServe(":5000", nil)
 	
