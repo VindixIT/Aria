@@ -36,7 +36,11 @@ func main(){
 
 	http.HandleFunc("/", ListFoods)
 	http.HandleFunc("/new", NewFood)
+	http.HandleFunc("/show", ShowFood)
+//	http.HandleFunc("/edit", EditFood)
 	http.HandleFunc("/insert", InsertFood)
+//	http.HandleFunc("/update", UpdateFood)
+//	http.HandleFunc("/delete", DeleteFood)
 
 	http.ListenAndServe(":5000", nil)
 	

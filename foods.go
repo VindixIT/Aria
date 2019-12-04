@@ -50,6 +50,30 @@ func ListFoods(w http.ResponseWriter, r *http.Request){
 	defer db.Close()
 }
 
+func ShowFood(w http.ResponseWriter, r *http.Request) {
+    db := dbConn()
+    nId := r.URL.Query().Get("id")
+    selDB, err := db.Query("SELECT * FROM Foods WHERE id=?", nId)
+    if err != nil {
+        panic(err.Error())
+    }
+    food := Food{}
+    for selDB.Next() {
+        var id int
+        var name, group string
+        err = selDB.Scan(&id, &name, &group)
+        if err != nil {
+            panic(err.Error())
+        }
+        food.Id = id
+        food.Name = name
+        food.Group = group
+    }
+    tmpl.ExecuteTemplate(w, "ShowFood", food)
+    defer db.Close()
+}
+
+
 func InsertFood(w http.ResponseWriter, r *http.Request) {
     db := dbConn()
     if r.Method == "POST" {
