@@ -1,7 +1,7 @@
-{{ define "ListFoodsGroups" }}
+{{ define "ListMeals" }}
   {{ template "Header" }}
     {{ template "Menu"  }}
-    <h2> Foods Groups </h2>
+    <h2> Meals </h2>
     <table border="1">
       <thead>
       <tr>
@@ -17,9 +17,9 @@
       <tr>
         <td> {{ .Id }} </td>
         <td> {{ .Name }} </td>
-        <td><a href="/showFoodGroup?id={{ .Id }}">View</a></td>
-        <td><a href="/editFoodGroup?id={{ .Id }}">Edit</a></td>
-        <td><a href="/deleteFoodGroup?id={{ .Id }}">Delete</a><td>
+        <td><a href="/showMeal?id={{ .Id }}">View</a></td>
+        <td><a href="/editMeal?id={{ .Id }}">Edit</a></td>
+        <td><a href="/deleteMeal?id={{ .Id }}">Delete</a><td>
       </tr>
     {{ end }}
        </tbody>

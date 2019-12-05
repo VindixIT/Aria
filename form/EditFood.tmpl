@@ -2,17 +2,18 @@
   {{ template "Header" }}
     {{ template "Menu" }} 
    <h2>Edit Food</h2>  
-    <form method="POST" action="updateF">
+    <form method="POST" action="updateFood">
       <input type="hidden" name="uid" value="{{ .Id }}" />
       <label> Name </label><input type="text" name="name" value="{{ .Name }}"  /><br />
       <label> Group </label>
         <select id="group" name="group">        
-            {{range $g := .Groups}}          
-					  <option value="{{ $g.Id }}" id="{{ $g.Id }}">
+            {{range $g := .GroupOptions}}          
+					  <option value="{{ $g.Id }}" id="{{ $g.Id }}"
+              {{ if $g.Selected }} 
+                selected
+              {{ end }}
+            >
             {{ $g.Name }}
-            {{ if eq $g.Id $g.Selected }} 
-              DEU CERTO 
-            {{end}}
             </option>
           {{ end }}
 				</select>
