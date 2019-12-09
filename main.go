@@ -51,6 +51,8 @@ func main(){
 	http.HandleFunc("/listUnits", ListUnits)
 	http.HandleFunc("/listMeasures", ListMeasures)
 	http.HandleFunc("/listItems", ListItems)
+	http.HandleFunc("/listRecords", ListRecords)
+
 	http.HandleFunc("/newFood", NewFood)
 	http.HandleFunc("/showFood", ShowFood)
 	http.HandleFunc("/editFood", EditFood)
@@ -93,6 +95,12 @@ func main(){
 	http.HandleFunc("/insertItem", InsertItem)
 	http.HandleFunc("/updateItem", UpdateItem)
 	http.HandleFunc("/deleteItem", DeleteItem)
+	http.HandleFunc("/newRecord", NewRecord)
+	http.HandleFunc("/showRecord", ShowRecord)
+	http.HandleFunc("/editRecord", EditRecord)
+	http.HandleFunc("/insertRecord", InsertRecord)
+	http.HandleFunc("/updateRecord", UpdateRecord)
+	http.HandleFunc("/deleteRecord", DeleteRecord)
 
 	http.HandleFunc("/calculate", Calculate)
 

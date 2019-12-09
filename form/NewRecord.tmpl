@@ -3,35 +3,37 @@
     {{ template "Menu" }} 
    <h2>New Record</h2>  
     <form method="POST" action="insertRecord">      
-        <label> Food </label>
-        <select id="foodid" name="foodid">        
-            {{range $f := .FoodOptions}}          
-					  <option value="{{ $f.Id }}" id="{{ $f.Id }}"
-              {{ if $f.Selected }} 
-                selected
-              {{ end }}
-            >
-            {{ $f.Name }}
-            </option>
-          {{ end }}
-				</select>
-      <br />
-        <label> Unit </label>
-            <select id="unitid" name="unitid">
-            {{range $u := .UnitOptions}}          
-					  <option value="{{ $u.Id }}" id="{{ $u.Id }}"
-              {{ if $u.Selected }} 
-                selected
-              {{ end }}
-            >
-            {{ $u.Symbol }}
-            </option>
-          {{ end }}
-				</select>
-      <br />
-      <label>Quantity</label><input type="text" name="quantity" value="{{ .Quantity }}"  /><br />
-      <label>CHO (g)</label><input type="text" name="CHO" value="{{ .CHO }}"  /><br />
+      <label> Meal Type </label>
+      <select id="mealid" name="foodid">        
+          {{range $m := .MealOptions}}          
+          <option value="{{ $m.Id }}" id="{{ $m.Id }}"
+            {{ if $m.Selected }} 
+              selected
+            {{ end }}
+          >
+          {{ $m.Name }}
+          </option>
+        {{ end }}
+      </select>
+      <br />     
+      <label> Insulin Type </label>
+      <select id="insulinid" name="insulinid">        
+          {{range $i := .InsulinOptions}}          
+          <option value="{{ $i.Id }}" id="{{ $i.Id }}"
+            {{ if $i.Selected }} 
+              selected
+            {{ end }}
+          >
+          {{ $i.Name }}
+          </option>
+        {{ end }}
+      </select>       
+      <label>Glycemia Before Meal</label><input type="text" name="gbm" value="{{ .GBM }}"  /><br />
+      <label>Glycemia After Meal</label><input type="text" name="gam" value="{{ .GAM }}"  /><br />
+      <label>Insuline Dose</label><input type="text" name="dose" value="{{ .Dose }}"  /><br />
+      <label>CHO (g)</label><input readOnly type="text" name="CHO" value="{{ .CHO }}"  /><br />
+      <label>Time of the Record</label><input readOnly type="text" name="timeRecord" value="{{ .TimeRecord }}"  /><br />
       <input type="submit" value="Save Record" />
-    </form><br />    
+    </form><br />
   {{ template "Footer" }}
 {{ end }}
