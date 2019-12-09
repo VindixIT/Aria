@@ -6,17 +6,22 @@ import (
 	_ "github.com/lib/pq"
     "log"
 	"os"
+	"io"
 	"text/template"   
+	"strconv"
+	"fmt"
 )
 
 var tmpl = template.Must(template.ParseGlob("form/*"))
 
 func InitDB(db * sql.DB){
-	InitUnitsTable(db) 		
-	InitInsulinsTable(db) 	
-	InitMealsTable(db) 
+	InitUnitsTable(db)
+	InitInsulinsTable(db)
+	InitMealsTable(db)
 	InitFoodsGroupsTable(db)
 	InitFoodsTable(db)
+	InitMeasuresTable(db)
+	InitItemsTable(db)
 	log.Println("InitDB Sucesso")
 }
 
@@ -44,6 +49,8 @@ func main(){
 	http.HandleFunc("/listMeals", ListMeals)
 	http.HandleFunc("/listInsulins", ListInsulins)
 	http.HandleFunc("/listUnits", ListUnits)
+	http.HandleFunc("/listMeasures", ListMeasures)
+	http.HandleFunc("/listItems", ListItems)
 	http.HandleFunc("/newFood", NewFood)
 	http.HandleFunc("/showFood", ShowFood)
 	http.HandleFunc("/editFood", EditFood)
@@ -74,6 +81,20 @@ func main(){
 	http.HandleFunc("/insertUnit", InsertUnit)
 	http.HandleFunc("/updateUnit", UpdateUnit)
 	http.HandleFunc("/deleteUnit", DeleteUnit)
+	http.HandleFunc("/newMeasure", NewMeasure)
+	http.HandleFunc("/showMeasure", ShowMeasure)
+	http.HandleFunc("/editMeasure", EditMeasure)
+	http.HandleFunc("/insertMeasure", InsertMeasure)
+	http.HandleFunc("/updateMeasure", UpdateMeasure)
+	http.HandleFunc("/deleteMeasure", DeleteMeasure)
+	http.HandleFunc("/newItem", NewItem)
+	http.HandleFunc("/showItem", ShowItem)
+	http.HandleFunc("/editItem", EditItem)
+	http.HandleFunc("/insertItem", InsertItem)
+	http.HandleFunc("/updateItem", UpdateItem)
+	http.HandleFunc("/deleteItem", DeleteItem)
+
+	http.HandleFunc("/calculate", Calculate)
 
 	http.ListenAndServe(":5000", nil)
 	
@@ -82,4 +103,26 @@ func main(){
 }
 
 
-
+func Calculate(w http.ResponseWriter, r *http.Request) {
+	db := dbConn()
+    log.Println("Calculate")
+	foodId := r.URL.Query().Get("foodid")
+	quantityItem, err := strconv.ParseFloat(r.URL.Query().Get("quantity"), 64)
+	sqlStatement := "SELECT quantity, CHO from Measures WHERE food_id = $1"
+	selDB, err := db.Query(sqlStatement, foodId)
+	log.Println(sqlStatement + " - " + foodId)
+    if err != nil {
+        panic(err.Error())
+    }
+	for selDB.Next() {
+		var quantity, CHO, CHOitem float64    
+        err = selDB.Scan(&quantity, &CHO)
+        if err != nil {
+            panic(err.Error())
+		}
+		CHOitem = CHO*quantityItem/quantity
+		log.Println("CHO: "+strconv.FormatFloat(CHOitem, 'f', 6, 64))
+		io.WriteString(w, fmt.Sprintf("%.2f", CHOitem))
+	}
+	defer db.Close()
+}

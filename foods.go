@@ -14,6 +14,7 @@ type Food struct {
     GroupId  int
     GroupOptions []FoodGroup
     Name string
+    Selected bool
 }
 func InitFoodsTable(db *sql.DB) {
     log.Println("Init Foods")

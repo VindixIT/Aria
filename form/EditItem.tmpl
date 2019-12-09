@@ -1,0 +1,39 @@
+{{ define "EditItem" }}
+  {{ template "Header" }}
+    {{ template "Menu" }} 
+   <h2>Edit Item</h2>  
+    <form method="POST" action="updateItem">
+      <input type="hidden" name="uid" value="{{ .Id }}" />
+        <label> Food </label>
+        <select id="foodid" name="foodid">        
+            {{range $f := .FoodOptions}}          
+					  <option value="{{ $f.Id }}" id="{{ $f.Id }}"
+              {{ if $f.Selected }} 
+                selected
+              {{ end }}
+            >
+            {{ $f.Name }}
+            </option>
+          {{ end }}
+				</select>
+      <br />
+        <label> Unit </label>
+        <select id="unit" name="unit">
+            {{range $unit := .UnitOptions}}          
+					  <option value="{{ $unit.Id }}" id="{{ $unit.Id }}"
+              {{ if $unit.Selected }} 
+                selected
+              {{ end }}
+            >
+            {{ $unit.Symbol }}
+            </option>
+          {{ end }}
+				</select>
+      <br />
+      <label>Quantity</label><input type="text" id="quantity" name="quantity" value="{{ .Quantity }}" 
+      onBlur="calculate()" /><br />
+      <label>CHO (g)</label><input readOly type="text" id="CHO" name="CHO" value="{{ .CHO }}" /><br />
+      <input type="submit" value="Save Item" />
+    </form><br />
+  {{ template "Footer" }}
+{{ end }}

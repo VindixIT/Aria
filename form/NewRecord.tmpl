@@ -1,0 +1,37 @@
+{{ define "NewRecord" }}
+  {{ template "Header" }}
+    {{ template "Menu" }} 
+   <h2>New Record</h2>  
+    <form method="POST" action="insertRecord">      
+        <label> Food </label>
+        <select id="foodid" name="foodid">        
+            {{range $f := .FoodOptions}}          
+					  <option value="{{ $f.Id }}" id="{{ $f.Id }}"
+              {{ if $f.Selected }} 
+                selected
+              {{ end }}
+            >
+            {{ $f.Name }}
+            </option>
+          {{ end }}
+				</select>
+      <br />
+        <label> Unit </label>
+            <select id="unitid" name="unitid">
+            {{range $u := .UnitOptions}}          
+					  <option value="{{ $u.Id }}" id="{{ $u.Id }}"
+              {{ if $u.Selected }} 
+                selected
+              {{ end }}
+            >
+            {{ $u.Symbol }}
+            </option>
+          {{ end }}
+				</select>
+      <br />
+      <label>Quantity</label><input type="text" name="quantity" value="{{ .Quantity }}"  /><br />
+      <label>CHO (g)</label><input type="text" name="CHO" value="{{ .CHO }}"  /><br />
+      <input type="submit" value="Save Record" />
+    </form><br />    
+  {{ template "Footer" }}
+{{ end }}

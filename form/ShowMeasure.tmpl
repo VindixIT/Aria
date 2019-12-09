@@ -1,0 +1,11 @@
+{{ define "ShowMeasure" }}
+  {{ template "Header" }}
+    {{ template "Menu"  }}
+    <h2> Register {{ .Id }} </h2>
+      <p>Food: {{ .FoodName }}</p>
+      <p>Unit: {{ .UnitSymbol }}</p>
+      <p>Quantity: {{ .Quantity }}</p>
+      <p>gCHO: {{ .CHO }}</p>
+      <br /> <a href="/editMeasure?id={{ .Id }}">Edit</a></p>
+  {{ template "Footer" }}
+{{ end }} 

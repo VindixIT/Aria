@@ -10,8 +10,8 @@ import (
 )
 type Unit struct {
     Id    int
-    Signal  string
-    Name  string
+    Symbol  string
+    Description  string
     Selected bool
 }
 func InitUnitsTable(db *sql.DB) {
@@ -19,8 +19,8 @@ func InitUnitsTable(db *sql.DB) {
 	if _, err := db.Exec(
 		" CREATE TABLE IF NOT EXISTS Units ( " +
 		" id SERIAL PRIMARY KEY, "+
-		" signal varchar(5) NOT NULL, " +
-		" name varchar(20) NOT NULL " +
+		" symbol varchar(5) NOT NULL, " +
+		" description varchar(20) NOT NULL " +
 		" )"); err != nil {
 			log.Fatalf("Error creating database: %q", err)
 		return
@@ -30,24 +30,24 @@ func InitUnitsTable(db *sql.DB) {
 func ListUnits(w http.ResponseWriter, r *http.Request){
 	db := dbConn()
 	log.Println("List Units")
-	selDB, err := db.Query("SELECT * FROM Units ORDER BY id DESC")
+	selDB, err := db.Query("SELECT id, symbol, description FROM Units ORDER BY id DESC")
     if err != nil {
         panic(err.Error())
 	}
 	unit := Unit{}
     units := []Unit{}
 	for selDB.Next() {
-		var id int
-      var name, signal string
-      err = selDB.Scan(&id, &name)
-      if err != nil {
-         panic(err.Error())
-      }
-      unit.Id = id
-      unit.Name = name      
-      unit.Signal = signal      
-      units = append(units, unit)
-}
+	    var id int
+        var symbol, description string
+        err = selDB.Scan(&id, &symbol, &description)
+        if err != nil {
+            panic(err.Error())
+        }
+        unit.Id = id
+        unit.Symbol = symbol      
+        unit.Description = description      
+        units = append(units, unit)
+    }
 	tmpl.ExecuteTemplate(w, "ListUnits", units) 
 	defer db.Close()
 }
@@ -56,21 +56,21 @@ func ShowUnit(w http.ResponseWriter, r *http.Request) {
     db := dbConn()
     log.Println("Show Unit")
     nId := r.URL.Query().Get("id")
-    selDB, err := db.Query("SELECT id, signal, name FROM Units WHERE id=$1", nId)
+    selDB, err := db.Query("SELECT id, symbol, description FROM Units WHERE id=$1", nId)
     if err != nil {
         panic(err.Error())
     }
     unit := Unit{}
     for selDB.Next() {
         var id int
-        var name, signal string
-        err = selDB.Scan(&id, &name)
+        var description, symbol string
+        err = selDB.Scan(&id, &symbol, &description)
         if err != nil {
             panic(err.Error())
         }
         unit.Id = id
-        unit.Name = name
-        unit.Signal = signal
+        unit.Description = description
+        unit.Symbol = symbol
     }
     tmpl.ExecuteTemplate(w, "ShowUnit", unit)
     defer db.Close()
@@ -80,22 +80,24 @@ func EditUnit(w http.ResponseWriter, r *http.Request) {
     db := dbConn()
     log.Println("Edit Unit")
     nId := r.URL.Query().Get("id")
-    selDB, err := db.Query("SELECT id, signal, name FROM Units WHERE id=$1", nId)
+    selDB, err := db.Query("SELECT id, symbol, description FROM Units WHERE id=$1", nId)
     if err != nil {
         panic(err.Error())
     }
-    food := Food{}
+    unit := Unit{}
     for selDB.Next() {
         var id int
-        var name string
-        err = selDB.Scan(&id, &name)
+        var symbol, description string
+        
+        err = selDB.Scan(&id, &symbol, &description)
         if err != nil {
             panic(err.Error())
         }
-        food.Id = id
-        food.Name = name
+        unit.Id = id
+        unit.Symbol = symbol
+        unit.Description = description
     }
-    tmpl.ExecuteTemplate(w, "EditUnit", food)
+    tmpl.ExecuteTemplate(w, "EditUnit", unit)
     defer db.Close()
 }
 
@@ -103,15 +105,15 @@ func InsertUnit(w http.ResponseWriter, r *http.Request) {
     db := dbConn()
     log.Println("Insert Unit")
     if r.Method == "POST" {
-        signal := r.FormValue("signal")
-        name := r.FormValue("name")
-		sqlStatement := "INSERT INTO Units(signal, name) VALUES ($1, $2) RETURNING id"
+        symbol := r.FormValue("symbol")
+        description := r.FormValue("description")
+		sqlStatement := "INSERT INTO Units(symbol, description) VALUES ($1, $2) RETURNING id"
 		id := 0
-		err := db.QueryRow(sqlStatement, signal, name).Scan(&id)
+		err := db.QueryRow(sqlStatement, symbol, description).Scan(&id)
         if err != nil {
             panic(err.Error())
         }        
-        log.Println("INSERT: Id: " + strconv.Itoa(id) +" | Signal: " + signal+" | Name: " + name)
+        log.Println("INSERT: Id: " + strconv.Itoa(id) +" | Symbol: " + symbol+" | Description: " + description)
     }
     defer db.Close()
     http.Redirect(w, r, "/listUnits", 301)
@@ -121,15 +123,16 @@ func UpdateUnit(w http.ResponseWriter, r *http.Request) {
     db := dbConn()
     log.Println("Update Unit")
     if r.Method == "POST" {
-      name := r.FormValue("name")
-		id := r.FormValue("uid")
-		sqlStatement := "UPDATE Units SET name=$1 WHERE id=$2"
+        symbol := r.FormValue("symbol") 
+        description := r.FormValue("description")
+        id := r.FormValue("uid")        
+		sqlStatement := "UPDATE Units SET symbol=$1, description=$2 WHERE id=$3"
 		updtForm, err := db.Prepare(sqlStatement)
         if err != nil {
             panic(err.Error())
 		}    
-		updtForm.Exec(name, id)    
-      log.Println("UPDATE: Id: " + id +" | Name: " + name ) 
+		updtForm.Exec(symbol, description, id)
+        log.Println("UPDATE: Id: " + id +" | Symbol: " +symbol+" | Description: " + description ) 
     }
     defer db.Close()
     http.Redirect(w, r, "/listUnits", 301)

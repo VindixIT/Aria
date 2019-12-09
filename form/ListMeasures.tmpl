@@ -1,0 +1,34 @@
+{{ define "ListMeasures" }}
+  {{ template "Header" }}
+    {{ template "Menu"  }}
+    <h2> Measures </h2>
+    <table border="1">
+      <thead>
+      <tr>
+        <td>ID</td>
+        <td>Food</td>
+        <td>Unit</td>
+        <td>Quantity</td>
+        <td>gCHO</td>
+        <td>View</td>
+        <td>Edit</td>
+        <td>Delete</td>
+      </tr>
+       </thead>
+       <tbody>
+    {{ range . }}
+      <tr>
+        <td> {{ .Id }} </td>
+        <td> {{ .FoodName }} </td>
+        <td> {{ .UnitSymbol }} </td>
+        <td> {{ .Quantity }} </td>
+        <td> {{ .CHO }} </td>
+        <td><a href="/showMeasure?id={{ .Id }}">View</a></td>
+        <td><a href="/editMeasure?id={{ .Id }}">Edit</a></td>
+        <td><a href="/deleteMeasure?id={{ .Id }}">Delete</a><td>
+      </tr>
+    {{ end }}
+       </tbody>
+    </table>
+  {{ template "Footer" }}
+{{ end }}

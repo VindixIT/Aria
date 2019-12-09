@@ -2,7 +2,8 @@
   {{ template "Header" }}
     {{ template "Menu"  }}
     <h2> Register {{ .Id }} </h2>
-      <p>Name: {{ .Name }}</p>
+      <p>Symbol: {{ .Symbol }}</p>
+      <p>Description: {{ .Description }}</p>
       <br /> <a href="/editUnit?id={{ .Id }}">Edit</a></p>
   {{ template "Footer" }}
 {{ end }} 

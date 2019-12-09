@@ -6,7 +6,8 @@
       <thead>
       <tr>
         <td>ID</td>
-        <td>Name</td>
+        <td>Symbol</td>
+        <td>Description</td>
         <td>View</td>
         <td>Edit</td>
         <td>Delete</td>
@@ -16,7 +17,8 @@
     {{ range . }}
       <tr>
         <td> {{ .Id }} </td>
-        <td> {{ .Name }} </td>
+        <td> {{ .Symbol }} </td>
+        <td> {{ .Description }} </td>
         <td><a href="/showUnit?id={{ .Id }}">View</a></td>
         <td><a href="/editUnit?id={{ .Id }}">Edit</a></td>
         <td><a href="/deleteUnit?id={{ .Id }}">Delete</a><td>
