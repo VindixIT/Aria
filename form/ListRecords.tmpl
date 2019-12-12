@@ -6,10 +6,13 @@
       <thead>
       <tr>
         <td>ID</td>
-        <td>Food</td>
-        <td>Unit</td>
-        <td>Quantity</td>
+        <td>Meal</td>
+        <td>Insulin</td>
+        <td>Glycemia Before Meal</td>
+        <td>Glycemia Before Meal</td>
+        <td>Dose (ml)</td>
         <td>gCHO</td>
+        <td>Created</td>
         <td>View</td>
         <td>Edit</td>
         <td>Delete</td>
@@ -19,15 +22,18 @@
     {{ range . }}
       <tr>
         <td> {{ .Id }} </td>
-        <td> {{ .FoodName }} </td>
-        <td> {{ .UnitSymbol }} </td>
-        <td> {{ .Quantity }} </td>
+        <td> {{ .MealName }} </td>
+        <td> {{ .InsulinName }} </td>
+        <td> {{ .Gbm }} </td>
+        <td> {{ .Gam }} </td>
+        <td> {{ .Dose }} </td>
         <td> {{ .CHO }} </td>
+        <td> {{ .Created }} </td>
         <td><a href="/showRecord?id={{ .Id }}">View</a></td>
         <td><a href="/editRecord?id={{ .Id }}">Edit</a></td>
         <td><a href="/deleteRecord?id={{ .Id }}">Delete</a><td>
       </tr>
-    {{ end }}
+    {{ end }} 
        </tbody>
     </table>
   {{ template "Footer" }}

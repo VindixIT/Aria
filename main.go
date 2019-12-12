@@ -52,8 +52,6 @@ func main(){
 	http.HandleFunc("/listUnits", ListUnits)
 	http.HandleFunc("/listMeasures", ListMeasures)
 	http.HandleFunc("/listItems", ListItems)
-	//http.HandleFunc("/listRecords", ListRecords)
-
 	http.HandleFunc("/newFood", NewFood)
 	http.HandleFunc("/showFood", ShowFood)
 	http.HandleFunc("/editFood", EditFood)
