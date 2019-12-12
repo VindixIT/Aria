@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"database/sql"
-    "strconv"
     "time"
 	_ "github.com/heroku/x/hmetrics/onload"
 	_ "github.com/lib/pq"
@@ -59,7 +58,6 @@ func ListRecords(w http.ResponseWriter, r *http.Request){
         var id, mealid, insulinid int
         var mealname, insulinname string
         var gbm, gam, dose float64        
-        var created time.Time
         err = selDB.Scan(&id, &mealid, &mealname, &insulinid, &insulinname, &gbm, &gam, &dose)
         if err != nil {
             panic(err.Error())
@@ -98,7 +96,6 @@ func ShowRecord(w http.ResponseWriter, r *http.Request) {
         var id, mealid, insulinid int
         var mealname, insulinname string
         var gbm, gam, dose float64        
-        var created time.Time
         err = selDB.Scan(&id, &mealid, &mealname, &insulinid, &insulinname, &gbm, &gam, &dose)
         if err != nil {
             panic(err.Error())
@@ -136,7 +133,6 @@ func EditRecord(w http.ResponseWriter, r *http.Request) {
         var id, mealid, insulinid int
         var mealname, insulinname string
         var gbm, gam, dose float64        
-        var created time.Time
         err = selDB.Scan(&id, &mealid, &mealname, &insulinid, &insulinname, &gbm, &gam, &dose)
         if err != nil {
             panic(err.Error())
@@ -177,8 +173,8 @@ func EditRecord(w http.ResponseWriter, r *http.Request) {
     if err != nil {
         panic(err.Error())
     }
-    insulin := Unit{}
-    insulins := []Unit{}
+    insulin := Insulin{}
+    insulins := []Insulin{}
     for selInsulinsDB.Next() {
         var id int
         var name string
@@ -188,7 +184,7 @@ func EditRecord(w http.ResponseWriter, r *http.Request) {
         }
         insulin.Id = id
         insulin.Name = name
-        if record.UnitId  == id {
+        if record.InsulinId  == id {
             insulin.Selected = true
         } else {
             insulin.Selected = false
@@ -204,18 +200,20 @@ func InsertRecord(w http.ResponseWriter, r *http.Request) {
     db := dbConn()
     log.Println("Insert Record")
     if r.Method == "POST" {
-        foodid := r.FormValue("foodid")
-        unitid := r.FormValue("unitid")
-        quantity := r.FormValue("quantity")
-        CHO := r.FormValue("CHO")
+        mealid := r.FormValue("mealid")
+        insulinid := r.FormValue("insulinid")
+        gbm := r.FormValue("gbm")
+        gam := r.FormValue("gam")
+        dose := r.FormValue("dose")
+        created := time.Now()
         id := 0
-        log.Println("INSERT: FoodId: " + foodid + " | UnitId: " + unitid + " | Quantity: " + quantity + " | CHO: " + CHO)
-        sqlStatement := "INSERT INTO Records(food_id, unit_id, quantity, CHO) VALUES ($1,$2,$3,$4) RETURNING id"
-		err := db.QueryRow(sqlStatement,foodid,unitid,quantity,CHO).Scan(&id)
+        formatedTime := created.Format(time.RFC1123)
+        log.Println("INSERT: MealId: " + mealid + " | InsulinId: " + insulinid + " | GBM: " + gbm + " | GAM: " + gam+ " | Dose: " + dose+ " | Created: " + formatedTime)
+        sqlStatement := "INSERT INTO Records(meal_id, insulin_id, gbm, gam, dose, creation_date) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id"
+        err := db.QueryRow(sqlStatement , mealid , insulinid , gbm , gam , dose , created).Scan(&id)
         if err != nil {
             panic(err.Error())
         }        
-        log.Println("INSERT: Id: " + strconv.Itoa(id) +" | FoodId: " + foodid + " | UnitId: " + unitid + " | Quantity: " + quantity + " | CHO: " + CHO)
     }
     defer db.Close()
     http.Redirect(w, r, "/listRecords", 301)
@@ -225,18 +223,19 @@ func UpdateRecord(w http.ResponseWriter, r *http.Request) {
     db := dbConn()
     log.Println("Update Record")
     if r.Method == "POST" {
-        foodid := r.FormValue("foodid")
-        unitid := r.FormValue("unit")
-        quantity := r.FormValue("quantity")
-        CHO := r.FormValue("CHO")
+        mealid := r.FormValue("mealid")
+        insulinid := r.FormValue("insulinid")
+        gbm := r.FormValue("gbm")
+        gam := r.FormValue("gam")
+        dose := r.FormValue("dose")
 		id := r.FormValue("uid")
-		sqlStatement := "UPDATE Records SET food_id=$1, unit_id=$2, quantity=$3, cho=$4 WHERE id=$5"
+		sqlStatement := "UPDATE Records SET meal_id=$1, insulin_id=$2, gbm=$3, gam=$4, dose=$5 WHERE id=$6"
 		updtForm, err := db.Prepare(sqlStatement)
         if err != nil {
             panic(err.Error())
 		}    
-		updtForm.Exec(foodid, unitid, quantity, CHO, id)
-        log.Println("UPDATE: Id: " + id +" | FoodId: " + foodid + " | UnitId: " + unitid + " | Quantity: " + quantity + " | CHO: " + CHO)
+		updtForm.Exec(mealid, insulinid, gbm, gam, dose, id)
+        log.Println("UPDATE: Id: " + id +" | MealId: " + mealid + " | InsulinId: " + insulinid + " | GBM: " + gbm + " | GAM: " + gam + " | Dose: " + dose )
     }
     defer db.Close()
     http.Redirect(w, r, "/listRecords", 301)
@@ -260,42 +259,51 @@ func NewRecord(w http.ResponseWriter, r *http.Request) {
     db := dbConn()
     log.Println("New Record")
     record := Record{}
-    selFoodsDB, err := db.Query("SELECT id, name FROM Foods")
+    selMealsDB, err := db.Query("SELECT id, name FROM Meals")    
     if err != nil {
         panic(err.Error())
     }
-    food := Food{}
-    foods := []Food{}
-    for selFoodsDB.Next() {
+    meal := Meal{}
+    meals := []Meal{}
+    for selMealsDB.Next() {
         var id int
         var name string
-        err = selFoodsDB.Scan(&id, &name)
+        err = selMealsDB.Scan(&id, &name)
         if err != nil {
             panic(err.Error())
         }
-        food.Id = id
-        food.Name = name
-        foods = append(foods, food)
+        meal.Id = id
+        meal.Name = name
+        if record.MealId == id {
+            meal.Selected = true
+        } else {
+            meal.Selected = false
+        }
+        meals = append(meals, meal)
     }
-    record.FoodOptions = foods
-    selUnitsDB, err := db.Query("SELECT id, symbol, description FROM Units")
+    record.MealOptions = meals
+    selInsulinsDB, err := db.Query("SELECT id, name FROM Insulins")
     if err != nil {
         panic(err.Error())
     }
-    unit := Unit{}
-    units := []Unit{}
-    for selUnitsDB.Next() {
+    insulin := Insulin{}
+    insulins := []Insulin{}
+    for selInsulinsDB.Next() {
         var id int
-        var symbol, description string
-        err = selUnitsDB.Scan(&id, &symbol, &description)
+        var name string
+        err = selInsulinsDB.Scan(&id, &name)
         if err != nil {
             panic(err.Error())
         }
-        unit.Id = id
-        unit.Symbol = symbol
-        unit.Description = description
-        units = append(units, unit)
+        insulin.Id = id
+        insulin.Name = name
+        if record.InsulinId  == id {
+            insulin.Selected = true
+        } else {
+            insulin.Selected = false
+        }
+        insulins = append(insulins, insulin)
     }
-    record.UnitOptions = units
+    record.InsulinOptions = insulins
 	tmpl.ExecuteTemplate(w, "NewRecord", record)
 }
