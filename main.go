@@ -22,6 +22,7 @@ func InitDB(db * sql.DB){
 	InitFoodsTable(db)
 	InitMeasuresTable(db)
 	InitItemsTable(db)
+	InitRecordsTable(db)
 	log.Println("InitDB Sucesso")
 }
 
@@ -41,7 +42,7 @@ func main(){
 
 	log.Println("database")
 
-	InitDB(database)
+	InitDB(database) 
 
 	http.HandleFunc("/", ListFoods)
 	http.HandleFunc("/listFoods", ListFoods)
@@ -51,7 +52,7 @@ func main(){
 	http.HandleFunc("/listUnits", ListUnits)
 	http.HandleFunc("/listMeasures", ListMeasures)
 	http.HandleFunc("/listItems", ListItems)
-	http.HandleFunc("/listRecords", ListRecords)
+	//http.HandleFunc("/listRecords", ListRecords)
 
 	http.HandleFunc("/newFood", NewFood)
 	http.HandleFunc("/showFood", ShowFood)
@@ -95,12 +96,12 @@ func main(){
 	http.HandleFunc("/insertItem", InsertItem)
 	http.HandleFunc("/updateItem", UpdateItem)
 	http.HandleFunc("/deleteItem", DeleteItem)
-	http.HandleFunc("/newRecord", NewRecord)
+	/*http.HandleFunc("/newRecord", NewRecord)
 	http.HandleFunc("/showRecord", ShowRecord)
 	http.HandleFunc("/editRecord", EditRecord)
 	http.HandleFunc("/insertRecord", InsertRecord)
 	http.HandleFunc("/updateRecord", UpdateRecord)
-	http.HandleFunc("/deleteRecord", DeleteRecord)
+	http.HandleFunc("/deleteRecord", DeleteRecord)*/
 
 	http.HandleFunc("/calculate", Calculate)
 
