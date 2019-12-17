@@ -4,7 +4,7 @@
    <h2>New Record</h2>  
     <form method="POST" action="insertRecord">      
       <label> Meal Type </label>
-      <select id="mealid" name="foodid">        
+      <select id="mealid" name="mealid">        
           {{range $m := .MealOptions}}          
           <option value="{{ $m.Id }}" id="{{ $m.Id }}"
             {{ if $m.Selected }} 
@@ -27,13 +27,38 @@
           {{ $i.Name }}
           </option>
         {{ end }}
-      </select>       
-      <label>Glycemia Before Meal</label><input type="text" name="gbm" value="{{ .GBM }}"  /><br />
-      <label>Glycemia After Meal</label><input type="text" name="gam" value="{{ .GAM }}"  /><br />
+      </select>
+      <br />       
+      <label>Glycemia Before Meal</label><input type="text" name="gbm" value="{{ .Gbm }}"  /><br />
+      <label>Glycemia After Meal</label><input type="text" name="gam" value="{{ .Gam }}"  /><br />
       <label>Insuline Dose</label><input type="text" name="dose" value="{{ .Dose }}"  /><br />
       <label>CHO (g)</label><input readOnly type="text" name="CHO" value="{{ .CHO }}"  /><br />
-      <label>Time of the Record</label><input readOnly type="text" name="timeRecord" value="{{ .TimeRecord }}"  /><br />
+      <input type="button" value="New Item" onClick="window.open('http://localhost:5000/newItem', 'modal', 'toolbar=yes,scrollbars=yes,resizable=no,top=200,left=200,width=400,height=400');
+"/><br />
       <input type="submit" value="Save Record" />
     </form><br />
+    <h4> Record Items </h4>
+    <table border="1">
+      <thead>
+      <tr>
+        <td>ID</td>
+        <td>Food</td>
+        <td>Unit</td>
+        <td>Quantity</td>
+        <td>gCHO</td>
+      </tr>
+       </thead>
+       <tbody>
+    {{ range .Items }} 
+      <tr>
+        <td> {{ .Id }} </td>
+        <td> {{ .FoodName }} </td>
+        <td> {{ .UnitSymbol }} </td>
+        <td> {{ .Quantity }} </td>
+        <td> {{ .CHO }} </td>
+      </tr>
+    {{ end }}
+       </tbody>
+    </table>
   {{ template "Footer" }}
 {{ end }}
