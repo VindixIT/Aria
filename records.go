@@ -26,7 +26,7 @@ type Record struct {
 	Gam            float64
 	Dose           float64
 	CHO            float64
-	Created        time.Time
+	Created        time.Time 
 	Items          []Item
 }
 
@@ -34,6 +34,31 @@ func InitSessionCookies(rw http.ResponseWriter, request *http.Request, cookieNam
 	session, _ := store.Get(request, cookieName)
 	session.Options.MaxAge = -1
 	sessions.Save(request, rw)
+}
+
+func StoreRecordInSession(w http.ResponseWriter, r *http.Request){
+	log.Println("Store Record in Session")
+	if r.Method == "POST" {
+		mealid := r.FormValue("mealid")
+		insulinid := r.FormValue("insulinid")
+		gbm := r.FormValue("gbm")
+		gam := r.FormValue("gam")
+		dose := r.FormValue("dose")
+	}
+	session, _ := store.Get(request, "mysession")
+	sessionRecord := session.Values["myRecord"]
+	newRecord := Record{
+		MealId:   	mealid,
+		InsulinId:  insulinid,
+		Gbm:		gbm,
+		Gam:      	gam,
+		Dose:      	dose,
+		}
+	bytesRecord, _ := json.Marshal(newRecord)
+	session.Values["myRecord"] = string(bytesRecord)
+	sessions.Save(w, r)
+	http.Redirect(w, r, "/newRecord", 301)
+
 }
 
 func InitRecordsTable(db *sql.DB) {

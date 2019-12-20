@@ -103,6 +103,7 @@ func main(){
 	http.HandleFunc("/deleteRecord", DeleteRecord)
 
 	http.HandleFunc("/calculate", Calculate)
+	http.HandleFunc("/storeRecordInSession", StoreRecordInSession)
 
 	http.ListenAndServe(":5000", nil)
 	
