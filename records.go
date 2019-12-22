@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/sessions"
@@ -26,7 +27,7 @@ type Record struct {
 	Gam            float64
 	Dose           float64
 	CHO            float64
-	Created        time.Time 
+	Created        time.Time
 	Items          []Item
 }
 
@@ -36,27 +37,27 @@ func InitSessionCookies(rw http.ResponseWriter, request *http.Request, cookieNam
 	sessions.Save(request, rw)
 }
 
-func StoreRecordInSession(w http.ResponseWriter, r *http.Request){
+func StoreRecordInSession(w http.ResponseWriter, r *http.Request) {
 	log.Println("Store Record in Session")
 	if r.Method == "POST" {
-		mealid := r.FormValue("mealid")
-		insulinid := r.FormValue("insulinid")
-		gbm := r.FormValue("gbm")
-		gam := r.FormValue("gam")
-		dose := r.FormValue("dose")
-	}
-	session, _ := store.Get(request, "mysession")
-	sessionRecord := session.Values["myRecord"]
-	newRecord := Record{
-		MealId:   	mealid,
-		InsulinId:  insulinid,
-		Gbm:		gbm,
-		Gam:      	gam,
-		Dose:      	dose,
+		mealid, _ := strconv.Atoi(r.FormValue("mealid"))
+		insulinid, _ := strconv.Atoi(r.FormValue("insulinid"))
+		gbm, _ := strconv.ParseFloat(r.FormValue("gbm"), 64)
+		gam, _ := strconv.ParseFloat(r.FormValue("gam"), 64)
+		dose, _ := strconv.ParseFloat(r.FormValue("dose"), 64)
+		session, _ := store.Get(r, "mysession")
+		// sessionRecord := session.Values["myRecord"]
+		newRecord := Record{
+			MealId:    mealid,
+			InsulinId: insulinid,
+			Gbm:       gbm,
+			Gam:       gam,
+			Dose:      dose,
 		}
-	bytesRecord, _ := json.Marshal(newRecord)
-	session.Values["myRecord"] = string(bytesRecord)
-	sessions.Save(w, r)
+		bytesRecord, _ := json.Marshal(newRecord)
+		session.Values["myRecord"] = string(bytesRecord)
+	}
+	sessions.Save(r, w)
 	http.Redirect(w, r, "/newRecord", 301)
 
 }
@@ -71,7 +72,7 @@ func InitRecordsTable(db *sql.DB) {
 			" gbm DOUBLE PRECISION NOT NULL, " +
 			" gam DOUBLE PRECISION NOT NULL, " +
 			" dose DOUBLE PRECISION NOT NULL, " +
-			" creation_date timestamp without time zone NOT NULL " +
+			" creation_date TIMESTAMP without time zone NOT NULL " +
 			" )"); err != nil {
 		log.Fatalf("Error creating database: %q", err)
 		return
@@ -300,6 +301,13 @@ func NewRecord(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	log.Println("New Record")
 	record := Record{}
+	session, _ := store.Get(r, "mysession")
+	sessionItem := session.Values["myitems"]
+	sessionRecord := session.Values["myRecord"]
+	if sessionRecord != nil {
+		strRecord := session.Values["myRecord"].(string)
+		json.Unmarshal([]byte(strRecord), &record)
+	}
 	selMealsDB, err := db.Query("SELECT id, name FROM Meals")
 	if err != nil {
 		panic(err.Error())
@@ -346,8 +354,6 @@ func NewRecord(w http.ResponseWriter, r *http.Request) {
 		insulins = append(insulins, insulin)
 	}
 	record.InsulinOptions = insulins
-	session, _ := store.Get(r, "mysession")
-	sessionItem := session.Values["myitems"]
 	myItems := []Item{}
 	if sessionItem != nil {
 		strItems := session.Values["myitems"].(string)
