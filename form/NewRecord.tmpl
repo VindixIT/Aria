@@ -33,8 +33,12 @@
       <label>Glycemia After Meal</label><input type="text" name="gam" value="{{ .Gam }}"  /><br />
       <label>Insuline Dose</label><input type="text" name="dose" value="{{ .Dose }}"  /><br />
       <label>CHO (g)</label><input readOnly type="text" name="CHO" value="{{ .CHO }}"  /><br />
-      <input type="submit" value="New Item" formaction="storeRecordInSession" onClick="window.open('http://localhost:5000/newItem', 'modal', 'toolbar=yes,scrollbars=yes,resizable=no,top=200,left=200,width=400,height=400');
-"/><br /> <!-- comment 2-->
+      <input 
+        type="submit" 
+        value="New Item" 
+        formaction="storeRecordInSession" 
+        onClick="window.open('http://localhost:5000/newItem', 'modal', 'toolbar=yes,scrollbars=yes,resizable=no,top=200,left=200,width=400,height=400');"/>
+        <br />
       <input type="submit" value="Save Record" />
     </form><br />
     <h4> Record Items </h4>
@@ -46,6 +50,9 @@
         <td>Unit</td>
         <td>Quantity</td>
         <td>gCHO</td>
+        <td>View</td>
+        <td>Edit</td>
+        <td>Delete</td>        
       </tr>
        </thead>
        <tbody>
@@ -56,6 +63,9 @@
         <td> {{ .UnitSymbol }} </td>
         <td> {{ .Quantity }} </td>
         <td> {{ .CHO }} </td>
+        <td><a href="/showItem?id={{ .Id }}">View</a></td>
+        <td><a href="/editItem?id={{ .Id }}">Edit</a></td>
+        <td><a href="/deleteItem?id={{ .Id }}">Delete</a><td>                
       </tr>
     {{ end }}
        </tbody>

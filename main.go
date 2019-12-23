@@ -1,20 +1,21 @@
 package main
 
 import (
-	"net/http"
 	"database/sql"
-	_ "github.com/lib/pq"
-    "log"
-	"os"
-	"io"
-	"text/template"   
-	"strconv"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"text/template"
+
+	_ "github.com/lib/pq"
 )
 
 var tmpl = template.Must(template.ParseGlob("form/*"))
 
-func InitDB(db * sql.DB){
+func InitDB(db *sql.DB) {
 	InitUnitsTable(db)
 	InitInsulinsTable(db)
 	InitMealsTable(db)
@@ -34,15 +35,15 @@ func dbConn() (db *sql.DB) {
 	return db
 }
 
-func main(){
-	
+func main() {
+
 	log.Println("Server started on: http://127.0.0.1:5000")
-	
+
 	database := dbConn()
 
 	log.Println("database")
 
-	InitDB(database) 
+	InitDB(database)
 
 	http.HandleFunc("/", ListFoods)
 	http.HandleFunc("/listFoods", ListFoods)
@@ -52,7 +53,7 @@ func main(){
 	http.HandleFunc("/listUnits", ListUnits)
 	http.HandleFunc("/listMeasures", ListMeasures)
 	http.HandleFunc("/listItems", ListItems)
-	http.HandleFunc("/listRecords", ListRecords)	
+	http.HandleFunc("/listRecords", ListRecords)
 	http.HandleFunc("/newFood", NewFood)
 	http.HandleFunc("/showFood", ShowFood)
 	http.HandleFunc("/editFood", EditFood)
@@ -106,31 +107,30 @@ func main(){
 	http.HandleFunc("/storeRecordInSession", StoreRecordInSession)
 
 	http.ListenAndServe(":5000", nil)
-	
+
 	defer database.Close()
 
 }
 
-
 func Calculate(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
-    log.Println("Calculate")
+	log.Println("Calculate")
 	foodId := r.URL.Query().Get("foodid")
 	quantityItem, err := strconv.ParseFloat(r.URL.Query().Get("quantity"), 64)
 	sqlStatement := "SELECT quantity, CHO from Measures WHERE food_id = $1"
 	selDB, err := db.Query(sqlStatement, foodId)
 	log.Println(sqlStatement + " - " + foodId)
-    if err != nil {
-        panic(err.Error())
-    }
+	if err != nil {
+		panic(err.Error())
+	}
 	for selDB.Next() {
-		var quantity, CHO, CHOitem float64    
-        err = selDB.Scan(&quantity, &CHO)
-        if err != nil {
-            panic(err.Error())
+		var quantity, CHO, CHOitem float64
+		err = selDB.Scan(&quantity, &CHO)
+		if err != nil {
+			panic(err.Error())
 		}
-		CHOitem = CHO*quantityItem/quantity
-		log.Println("CHO: "+strconv.FormatFloat(CHOitem, 'f', 6, 64))
+		CHOitem = CHO * quantityItem / quantity
+		log.Println("CHO: " + strconv.FormatFloat(CHOitem, 'f', 6, 64))
 		io.WriteString(w, fmt.Sprintf("%.2f", CHOitem))
 	}
 	defer db.Close()

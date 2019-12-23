@@ -2,10 +2,46 @@
   {{ template "Header" }}
     {{ template "Menu"  }}
     <h2> Register {{ .Id }} </h2>
-      <p>Food: {{ .FoodName }}</p>
-      <p>Unit: {{ .UnitSymbol }}</p>
-      <p>Quantity: {{ .Quantity }}</p>
-      <p>gCHO: {{ .CHO }}</p>
-      <br /> <a href="/editRecord?id={{ .Id }}">Edit</a></p>
+      <label> Meal Type </label>
+      <input type="text" disabled value="{{.MealName}}"/>
+      <br />
+      <label> Insulin Type </label>
+      <input type="text" disabled value="{{.InsulinName}}"/>
+      <br />       
+      <label>Glycemia Before Meal</label><input disabled type="text" name="gbm" value="{{ .Gbm }}"  /><br />
+      <label>Glycemia After Meal</label><input disabled type="text" name="gam" value="{{ .Gam }}"  /><br />
+      <label>Insuline Dose</label><input disabled type="text" name="dose" value="{{ .Dose }}"  /><br />
+      <label>CHO (g)</label><input disabled type="text" name="CHO" value="{{ .CHO }}"  /><br />
+    <h4> Record Items </h4>
+    <table border="1">
+      <thead>
+      <tr>
+        <td>ID</td>
+        <td>Food</td>
+        <td>Unit</td>
+        <td>Quantity</td>
+        <td>gCHO</td>
+        <td>View</td>
+      </tr>
+       </thead>
+       <tbody>
+    {{ range .Items }} 
+      <tr>
+        <td> {{ .Id }} </td>
+        <td> {{ .FoodName }} </td>
+        <td> {{ .UnitSymbol }} </td>
+        <td> {{ .Quantity }} </td>
+        <td> {{ .CHO }} </td>
+        <td>
+        <input 
+          type="button" 
+          value="View" 
+          onClick="window.open('http://localhost:5000/showItem', 'modal', 'toolbar=yes,scrollbars=yes,resizable=no,top=200,left=200,width=400,height=400');"
+        />
+        </td>
+      </tr>
+    {{ end }}
+       </tbody>
+    </table>
   {{ template "Footer" }}
 {{ end }} 

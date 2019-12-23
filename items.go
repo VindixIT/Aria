@@ -33,32 +33,41 @@ func InsertItem(rw http.ResponseWriter, request *http.Request) {
 	log.Println("Insert Item")
 	if request.Method == "POST" {
 		foodid, _ := strconv.Atoi(request.FormValue("foodid"))
+		foodName := request.FormValue("foodName")
 		unitid, _ := strconv.Atoi(request.FormValue("unitid"))
+		unitSymbol := request.FormValue("unitSymbol")
 		quantity, _ := strconv.ParseFloat(request.FormValue("quantity"), 64)
 		CHO, _ := strconv.ParseFloat(request.FormValue("CHO"), 64)
+		log.Println("FoodName: " + foodName + " | UnitSymbol: " + unitSymbol)
 		log.Println("Create in SESSION: FoodId: " + fmt.Sprint(foodid) + " | UnitId: " + fmt.Sprint(unitid) + " | Quantity: " + fmt.Sprint(quantity) + " | CHO: " + fmt.Sprint(CHO))
 		session, _ := store.Get(request, "mysession")
 		sessionItem := session.Values["myitems"]
 		newItem := Item{
-			FoodId:   foodid,
-			UnitId:   unitid,
-			Quantity: quantity,
-			CHO:      CHO,
+			FoodId:     foodid,
+			FoodName:   foodName,
+			UnitSymbol: unitSymbol,
+			UnitId:     unitid,
+			Quantity:   quantity,
+			CHO:        CHO,
 		}
 		myItems := []Item{}
 		if sessionItem == nil {
+			newItem.Id = 0
 			myItems = append(myItems, newItem)
 		} else {
 			strItems := session.Values["myitems"].(string)
 			json.Unmarshal([]byte(strItems), &myItems)
+			newItem.Id = len(myItems)
 			myItems = append(myItems, newItem)
-			for index := range myItems {
-				item := myItems[index]
-				log.Println("FoodId: " + strconv.Itoa(item.FoodId))
-				log.Println("UnitId: " + strconv.Itoa(item.UnitId))
-				log.Println("Quantity: " + fmt.Sprintf("%f", item.Quantity))
-				log.Println("CHO: " + fmt.Sprintf("%f", item.CHO))
-			}
+		}
+		for index := range myItems {
+			item := myItems[index]
+			log.Println("FoodId: " + strconv.Itoa(item.FoodId))
+			log.Println("FoodName: " + item.FoodName)
+			log.Println("UnitId: " + strconv.Itoa(item.UnitId))
+			log.Println("UnitSymbol: " + item.UnitSymbol)
+			log.Println("Quantity: " + fmt.Sprintf("%f", item.Quantity))
+			log.Println("CHO: " + fmt.Sprintf("%f", item.CHO))
 		}
 		bytesItems, _ := json.Marshal(myItems)
 		session.Values["myitems"] = string(bytesItems)

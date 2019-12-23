@@ -1,10 +1,11 @@
 {{ define "NewItem" }}
   {{ template "Header" }}
    <h2>New Item</h2>  
-    <form method="POST" action="insertItem">      
+    <form method="POST" id="NewItemForm" action="insertItem">    
         <label> Food </label>
-        <select id="foodid" name="foodid">        
-            {{range $f := .FoodOptions}}          
+        <input type="hidden" id="foodName" name="foodName">
+        <select id="foodid" name="foodid" onchange="storeFoodName(this)">
+            {{range $f := .FoodOptions}}
 					  <option value="{{ $f.Id }}" id="{{ $f.Id }}"
               {{ if $f.Selected }} 
                 selected
@@ -14,9 +15,10 @@
             </option>
           {{ end }}
 				</select>
-      <br />
+        <br />
         <label> Unit </label>
-            <select id="unitid" name="unitid">
+        <input type="hidden" id="unitSymbol" name="unitSymbol">
+        <select id="unitid" name="unitid" onchange="storeUnitSymbol(this)">
             {{range $u := .UnitOptions}}          
 					  <option value="{{ $u.Id }}" id="{{ $u.Id }}"
               {{ if $u.Selected }} 
@@ -31,7 +33,7 @@
       <label>Quantity</label><input type="text" id="quantity" name="quantity" value="{{ .Quantity }}" 
         onBlur="calculate()" /><br />
       <label>CHO (g)</label><input readOnly type="text" id="CHO" name="CHO" value="{{ .CHO }}"  /><br />
-      <input type="submit" value="Save Item" />
+      <input type="button" value="Save Item" onclick="submitItemForm()"/>
     </form><br />
   {{ template "Footer" }}
 {{ end }}

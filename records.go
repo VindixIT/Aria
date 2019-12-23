@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -127,7 +128,7 @@ func ShowRecord(w http.ResponseWriter, r *http.Request) {
 		" FROM public.records A " +
 		" LEFT JOIN meals B on A.meal_id = B.ID " +
 		" LEFT JOIN insulins D on A.insulin_id = D.id " +
-		" ORDER BY id DESC WHERE a.id = $1"
+		" WHERE a.id = $1 ORDER BY id DESC "
 	log.Println(sqlStatement)
 	selDB, err := db.Query(sqlStatement, nId)
 	if err != nil {
@@ -138,7 +139,8 @@ func ShowRecord(w http.ResponseWriter, r *http.Request) {
 		var id, mealid, insulinid int
 		var mealname, insulinname string
 		var gbm, gam, dose float64
-		err = selDB.Scan(&id, &mealid, &mealname, &insulinid, &insulinname, &gbm, &gam, &dose)
+		var created time.Time
+		err = selDB.Scan(&id, &mealid, &mealname, &insulinid, &insulinname, &gbm, &gam, &dose, &created)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -150,6 +152,47 @@ func ShowRecord(w http.ResponseWriter, r *http.Request) {
 		record.Gbm = gbm
 		record.Gam = gam
 		record.Dose = dose
+		record.Created = created
+	}
+	sqlStatement = "SELECT " +
+		"	a.id," +
+		"	a.food_id," +
+		"	b.name as food_name," +
+		"	a.unit_id," +
+		"	c.symbol as unit_symbol," +
+		"	a.quantity," +
+		"	a.cho " +
+		" from " +
+		"	items a" +
+		" left join " +
+		"	foods b " +
+		" on a.food_id = b.id" +
+		" left join " +
+		"	units c " +
+		" on a.unit_id = c.id" +
+		" where record_id = $1"
+	log.Println(sqlStatement)
+	selDB, err = db.Query(sqlStatement, nId)
+	if err != nil {
+		panic(err.Error())
+	}
+	item := Item{}
+	for selDB.Next() {
+		var id, foodid, unitid int
+		var foodName, unitSymbol string
+		var quantity, CHO float64
+		err = selDB.Scan(&id, &foodid, &foodName, &unitid, &unitSymbol, &quantity, &CHO)
+		if err != nil {
+			panic(err.Error())
+		}
+		item.Id = id
+		item.FoodId = foodid
+		item.UnitId = unitid
+		item.FoodName = foodName
+		item.UnitSymbol = unitSymbol
+		item.Quantity = quantity
+		item.CHO = CHO
+		record.Items = append(record.Items, item)
 	}
 	tmpl.ExecuteTemplate(w, "ShowRecord", record)
 	defer db.Close()
@@ -241,6 +284,7 @@ func EditRecord(w http.ResponseWriter, r *http.Request) {
 func InsertRecord(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	log.Println("Insert Record")
+	recordid := 0
 	if r.Method == "POST" {
 		mealid := r.FormValue("mealid")
 		insulinid := r.FormValue("insulinid")
@@ -248,11 +292,29 @@ func InsertRecord(w http.ResponseWriter, r *http.Request) {
 		gam := r.FormValue("gam")
 		dose := r.FormValue("dose")
 		created := time.Now()
-		id := 0
 		formatedTime := created.Format(time.RFC1123)
 		log.Println("INSERT: MealId: " + mealid + " | InsulinId: " + insulinid + " | GBM: " + gbm + " | GAM: " + gam + " | Dose: " + dose + " | Created: " + formatedTime)
 		sqlStatement := "INSERT INTO Records(meal_id, insulin_id, gbm, gam, dose, creation_date) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id"
-		err := db.QueryRow(sqlStatement, mealid, insulinid, gbm, gam, dose, created).Scan(&id)
+		err := db.QueryRow(sqlStatement, mealid, insulinid, gbm, gam, dose, created).Scan(&recordid)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	session, _ := store.Get(r, "mysession")
+	strItems := session.Values["myitems"].(string)
+	myItems := []Item{}
+	json.Unmarshal([]byte(strItems), &myItems)
+	for index := range myItems {
+		item := myItems[index]
+		log.Println("FoodId: " + strconv.Itoa(item.FoodId))
+		log.Println("FoodName: " + item.FoodName)
+		log.Println("UnitId: " + strconv.Itoa(item.UnitId))
+		log.Println("UnitSymbol: " + item.UnitSymbol)
+		log.Println("Quantity: " + fmt.Sprintf("%f", item.Quantity))
+		log.Println("CHO: " + fmt.Sprintf("%f", item.CHO))
+		id := 0
+		sqlStatement := "INSERT INTO Items(record_id, food_id, unit_id, quantity, cho) VALUES ($1,$2,$3,$4,$5) RETURNING id"
+		err := db.QueryRow(sqlStatement, recordid, item.FoodId, item.UnitId, item.Quantity, item.CHO).Scan(&id)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -285,9 +347,15 @@ func UpdateRecord(w http.ResponseWriter, r *http.Request) {
 
 func DeleteRecord(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
-	log.Println("Delete Record")
+	log.Println("Delete Items")
 	id := r.URL.Query().Get("id")
-	delForm, err := db.Prepare("DELETE FROM Records WHERE id=$1")
+	delForm, err := db.Prepare("DELETE FROM Items WHERE record_id=$1")
+	if err != nil {
+		panic(err.Error())
+	}
+	delForm.Exec(id)
+	log.Println("Delete Record")
+	delForm, err = db.Prepare("DELETE FROM Records WHERE id=$1")
 	if err != nil {
 		panic(err.Error())
 	}
