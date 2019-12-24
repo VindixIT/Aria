@@ -22,8 +22,9 @@ func InitDB(db *sql.DB) {
 	InitFoodsGroupsTable(db)
 	InitFoodsTable(db)
 	InitMeasuresTable(db)
-	InitItemsTable(db)
 	InitRecordsTable(db)
+	InitItemsTable(db)
+	
 	log.Println("InitDB Sucesso")
 }
 

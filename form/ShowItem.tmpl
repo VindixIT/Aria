@@ -1,11 +1,17 @@
 {{ define "ShowItem" }}
   {{ template "Header" }}
-    {{ template "Menu"  }}
     <h2> Register {{ .Id }} </h2>
       <p>Food: {{ .FoodName }}</p>
       <p>Unit: {{ .UnitSymbol }}</p>
       <p>Quantity: {{ .Quantity }}</p>
       <p>gCHO: {{ .CHO }}</p>
-      <br /> <a href="/editItem?id={{ .Id }}">Edit</a></p>
+      <button onclick="functionEdition()">Edit Item</button>
+      <!-- <br /> <a href="/editItem?id={{ .Id }}">Edit</a></p> -->
+      <script>
+      function functionEdition() {
+        window.opener.location = 'http://localhost:5000/editItem?id={{ .Id }}';
+      }
+      </script>
+      <input id = 'btn' type='button' value ="Close" onclick = "window.close();"
   {{ template "Footer" }}
 {{ end }} 

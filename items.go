@@ -128,7 +128,7 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 func ShowItem(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	log.Println("Show Item")
-	nId := r.URL.Query().Get("id")
+	nId, _ := strconv.Atoi(r.URL.Query().Get("id"))
 	sqlStatement := "SELECT " +
 		" A.id, B.id, B.name AS food_name, C.id, C.symbol AS unit_symbol, A.quantity, A.CHO " +
 		" FROM Items A left join Foods B " +
