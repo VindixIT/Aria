@@ -9,7 +9,7 @@
       <!-- <br /> <a href="/editItem?id={{ .Id }}">Edit</a></p> -->
       <script>
       function functionEdition() {
-        window.opener.location = 'http://localhost:5000/editItem?id={{ .Id }}';
+        window.location = 'http://localhost:5000/editItem?id={{ .Id }}';
       }
       </script>
       <input id = 'btn' type='button' value ="Close" onclick = "window.close();"

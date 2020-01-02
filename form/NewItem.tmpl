@@ -1,7 +1,7 @@
 {{ define "NewItem" }}
   {{ template "Header" }}
    <h2>New Item</h2>  
-    <form method="POST" id="NewItemForm" action="insertItem">    
+    <form method="POST" id="ItemForm" action="insertItem">    
         <label> Food </label>
         <input type="hidden" id="foodName" name="foodName">
         <select id="foodid" name="foodid" onchange="storeFoodName(this)">

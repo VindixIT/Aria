@@ -2,37 +2,74 @@
   {{ template "Header" }}
     {{ template "Menu" }} 
    <h2>Edit Record</h2>  
-    <form method="POST" action="updateRecord">
-      <input type="hidden" name="uid" value="{{ .Id }}" />
-        <label> Food </label>
-        <select id="food" name="food">        
-            {{range $f := .FoodOptions}}          
-					  <option value="{{ $f.Id }}" id="{{ $f.Id }}"
-              {{ if $f.Selected }} 
-                selected
-              {{ end }}
-            >
-            {{ $f.Name }}
-            </option>
-          {{ end }}
-				</select>
-      <br />
-        <label> Unit </label>
-        <select id="unit" name="unit">
-            {{range $unit := .UnitOptions}}          
-					  <option value="{{ $unit.Id }}" id="{{ $unit.Id }}"
-              {{ if $unit.Selected }} 
-                selected
-              {{ end }}
-            >
-            {{ $unit.Symbol }}
-            </option>
-          {{ end }}
-				</select>
-      <br />
-      <label>Quantity</label><input type="text" name="quantity" value="{{ .Quantity }}"  /><br />
-      <label>CHO (g)</label><input type="text" name="cho" value="{{ .CHO }}"  /><br />
+    <form method="POST" action="updateRecord">      
+      <label> Meal Type </label>
+      <select id="mealid" name="mealid">        
+          {{range $m := .MealOptions}}          
+          <option value="{{ $m.Id }}" id="{{ $m.Id }}"
+            {{ if $m.Selected }} 
+              selected
+            {{ end }}
+          >
+          {{ $m.Name }}
+          </option>
+        {{ end }}
+      </select>
+      <br />     
+      <label> Insulin Type </label>
+      <select id="insulinid" name="insulinid">        
+          {{range $i := .InsulinOptions}}          
+          <option value="{{ $i.Id }}" id="{{ $i.Id }}"
+            {{ if $i.Selected }} 
+              selected
+            {{ end }}
+          >
+          {{ $i.Name }}
+          </option>
+        {{ end }}
+      </select>
+      <br />       
+      <label>Glycemia Before Meal</label><input type="text" name="gbm" value="{{ .Gbm }}"  /><br />
+      <label>Glycemia After Meal</label><input type="text" name="gam" value="{{ .Gam }}"  /><br />
+      <label>Insuline Dose</label><input type="text" name="dose" value="{{ .Dose }}"  /><br />
+      <label>CHO (g)</label><input readOnly type="text" name="CHO" value="{{ .CHO }}"  /><br />
+      <label>Created</label><input readOnly disabled type="text" name="created" value="{{ .Created }}"  /><br />
+      <input 
+        type="submit" 
+        value="New Item" 
+        formaction="editRecord"
+        onClick="window.open('http://localhost:5000/newItem', 'modal', 'toolbar=yes,scrollbars=yes,resizable=no,top=200,left=200,width=400,height=400');"/>
+        <br />
       <input type="submit" value="Save Record" />
-    </form><br />    
+    </form><br />
+    <h4> Record Items </h4>
+    <table border="1">
+      <thead>
+      <tr>
+        <td>ID</td>
+        <td>Food</td>
+        <td>Unit</td>
+        <td>Quantity</td>
+        <td>gCHO</td>
+        <td>View</td>
+        <td>Edit</td>
+        <td>Delete</td>        
+      </tr>
+       </thead>
+       <tbody>
+    {{ range .Items }} 
+      <tr>
+        <td> {{ .Id }} </td>
+        <td> {{ .FoodName }} </td>
+        <td> {{ .UnitSymbol }} </td>
+        <td> {{ .Quantity }} </td>
+        <td> {{ .CHO }} </td>
+        <td><a href="/showItem?id={{ .Id }}">View</a></td>
+        <td><a href="/editItem?id={{ .Id }}">Edit</a></td>
+        <td><a href="/deleteItem?id={{ .Id }}">Delete</a><td>                
+      </tr>
+    {{ end }}
+       </tbody>
+    </table>
   {{ template "Footer" }}
 {{ end }}

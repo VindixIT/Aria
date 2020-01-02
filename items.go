@@ -16,7 +16,7 @@ import (
 var store = sessions.NewCookieStore([]byte("mysession"))
 
 type Item struct {
-	Id          int     `json:"id"`
+	Id          string  `json:"id"`
 	Food        string  `json:"food"`
 	FoodId      int     `json:"foodid"`
 	FoodName    string  `json:"foodname"`
@@ -32,6 +32,7 @@ type Item struct {
 func InsertItem(rw http.ResponseWriter, request *http.Request) {
 	log.Println("Insert Item")
 	if request.Method == "POST" {
+		tmp := "tmp"
 		foodid, _ := strconv.Atoi(request.FormValue("foodid"))
 		foodName := request.FormValue("foodName")
 		unitid, _ := strconv.Atoi(request.FormValue("unitid"))
@@ -52,12 +53,12 @@ func InsertItem(rw http.ResponseWriter, request *http.Request) {
 		}
 		myItems := []Item{}
 		if sessionItem == nil {
-			newItem.Id = 0
+			newItem.Id = "0"
 			myItems = append(myItems, newItem)
 		} else {
 			strItems := session.Values["myitems"].(string)
 			json.Unmarshal([]byte(strItems), &myItems)
-			newItem.Id = len(myItems)
+			newItem.Id = tmp + strconv.Itoa(len(myItems))
 			myItems = append(myItems, newItem)
 		}
 		for index := range myItems {
@@ -112,7 +113,7 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		item.Id = id
+		item.Id = strconv.Itoa(id)
 		item.FoodId = foodid
 		item.UnitId = unitid
 		item.FoodName = foodName
@@ -126,37 +127,52 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShowItem(w http.ResponseWriter, r *http.Request) {
-	db := dbConn()
-	log.Println("Show Item")
 	nId, _ := strconv.Atoi(r.URL.Query().Get("id"))
-	sqlStatement := "SELECT " +
-		" A.id, B.id, B.name AS food_name, C.id, C.symbol AS unit_symbol, A.quantity, A.CHO " +
-		" FROM Items A left join Foods B " +
-		" on A.food_id = B.id left join Units C on A.unit_id = C.id WHERE a.id = $1"
-	log.Println(sqlStatement)
-	selDB, err := db.Query(sqlStatement, nId)
-	if err != nil {
-		panic(err.Error())
-	}
+	session, _ := store.Get(r, "mysession")
 	item := Item{}
-	for selDB.Next() {
-		var id, foodid, unitid int
-		var foodName, unitSymbol string
-		var quantity, CHO float64
-		err = selDB.Scan(&id, &foodid, &foodName, &unitid, &unitSymbol, &quantity, &CHO)
+	if session != nil{
+		strItems := session.Values["myitems"].(string)
+		myItems := []Item{}
+		json.Unmarshal([]byte(strItems), &myItems)
+		for i := range myItems{
+			if myItems[i].Id == strconv.Itoa(nId){
+				item = myItems[i]
+				break
+			}
+		}
+	} else {
+		db := dbConn()
+		log.Println("Show Item")
+		sqlStatement := "SELECT " +
+			" A.id, B.id, B.name AS food_name, C.id, C.symbol AS unit_symbol, A.quantity, A.CHO " +
+			" FROM Items A left join Foods B " +
+			" on A.food_id = B.id left join Units C on A.unit_id = C.id WHERE a.id = $1"
+		log.Println(sqlStatement)
+		selDB, err := db.Query(sqlStatement, nId)
 		if err != nil {
 			panic(err.Error())
 		}
-		item.Id = id
-		item.FoodId = foodid
-		item.UnitId = unitid
-		item.FoodName = foodName
-		item.UnitSymbol = unitSymbol
-		item.Quantity = quantity
-		item.CHO = CHO
-	}
+
+		for selDB.Next() {
+			var id, foodid, unitid int
+			var foodName, unitSymbol string
+			var quantity, CHO float64
+			err = selDB.Scan(&id, &foodid, &foodName, &unitid, &unitSymbol, &quantity, &CHO)
+			if err != nil {
+				panic(err.Error())
+			}
+			item.Id = strconv.Itoa(id)
+			item.FoodId = foodid
+			item.UnitId = unitid
+			item.FoodName = foodName
+			item.UnitSymbol = unitSymbol
+			item.Quantity = quantity
+			item.CHO = CHO
+		}
+		defer db.Close()
+	} 
 	tmpl.ExecuteTemplate(w, "ShowItem", item)
-	defer db.Close()
+	
 }
 
 func EditItem(w http.ResponseWriter, r *http.Request) {
@@ -179,7 +195,7 @@ func EditItem(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		item.Id = id
+		item.Id = strconv.Itoa(id)
 		item.FoodId = foodid
 		item.UnitId = unitid
 		item.FoodName = foodName
@@ -256,7 +272,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		log.Println("UPDATE: Id: " + id + " | FoodId: " + foodid + " | UnitId: " + unitid + " | Quantity: " + quantity + " | CHO: " + CHO)
 	}
 	defer db.Close()
-	http.Redirect(w, r, "/listItems", 301)
+	tmpl.ExecuteTemplate(w, "CloseWindow", nil)
 }
 
 func DeleteItem(w http.ResponseWriter, r *http.Request) {

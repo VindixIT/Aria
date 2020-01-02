@@ -63,7 +63,9 @@
         <td> {{ .UnitSymbol }} </td>
         <td> {{ .Quantity }} </td>
         <td> {{ .CHO }} </td>
-        <td><a href="/showItem?id={{ .Id }}">View</a></td>
+        <td><input type="button"
+             value="View"
+             onClick="window.open('http://localhost:5000/showItem?id={{ .Id }}', 'modal', 'toolbar=yes,scrollbars=yes,resizable=no,top=200,left=200,width=400,height=400');"/>
         <td><a href="/editItem?id={{ .Id }}">Edit</a></td>
         <td><a href="/deleteItem?id={{ .Id }}">Delete</a><td>                
       </tr>

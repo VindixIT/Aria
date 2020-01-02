@@ -185,7 +185,7 @@ func ShowRecord(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		item.Id = id
+		item.Id = strconv.Itoa(id)
 		item.FoodId = foodid
 		item.UnitId = unitid
 		item.FoodName = foodName
@@ -195,89 +195,6 @@ func ShowRecord(w http.ResponseWriter, r *http.Request) {
 		record.Items = append(record.Items, item)
 	}
 	tmpl.ExecuteTemplate(w, "ShowRecord", record)
-	defer db.Close()
-}
-
-func EditRecord(w http.ResponseWriter, r *http.Request) {
-	db := dbConn()
-	log.Println("Edit Record")
-	nId := r.URL.Query().Get("id")
-	sqlStatement := "SELECT " +
-		" A.id, A.meal_id, B.name as meal_name, A.insulin_id, D.name as insulin_name, A.gbm, A.gam, A.dose, A.creation_date " +
-		" FROM public.records A " +
-		" LEFT JOIN meals B on A.meal_id = B.ID " +
-		" LEFT JOIN insulins D on A.insulin_id = D.id " +
-		" ORDER BY id DESC WHERE a.id = $1"
-	log.Println(sqlStatement)
-	selDB, err := db.Query(sqlStatement, nId)
-	if err != nil {
-		panic(err.Error())
-	}
-	record := Record{}
-	for selDB.Next() {
-		var id, mealid, insulinid int
-		var mealname, insulinname string
-		var gbm, gam, dose float64
-		err = selDB.Scan(&id, &mealid, &mealname, &insulinid, &insulinname, &gbm, &gam, &dose)
-		if err != nil {
-			panic(err.Error())
-		}
-		record.Id = id
-		record.MealId = mealid
-		record.MealName = mealname
-		record.InsulinId = insulinid
-		record.InsulinName = insulinname
-		record.Gbm = gbm
-		record.Gam = gam
-		record.Dose = dose
-	}
-	selMealsDB, err := db.Query("SELECT id, name FROM Meals")
-	if err != nil {
-		panic(err.Error())
-	}
-	meal := Meal{}
-	meals := []Meal{}
-	for selMealsDB.Next() {
-		var id int
-		var name string
-		err = selMealsDB.Scan(&id, &name)
-		if err != nil {
-			panic(err.Error())
-		}
-		meal.Id = id
-		meal.Name = name
-		if record.MealId == id {
-			meal.Selected = true
-		} else {
-			meal.Selected = false
-		}
-		meals = append(meals, meal)
-	}
-	record.MealOptions = meals
-	selInsulinsDB, err := db.Query("SELECT id, name FROM Inslulins")
-	if err != nil {
-		panic(err.Error())
-	}
-	insulin := Insulin{}
-	insulins := []Insulin{}
-	for selInsulinsDB.Next() {
-		var id int
-		var name string
-		err = selInsulinsDB.Scan(&id, &name)
-		if err != nil {
-			panic(err.Error())
-		}
-		insulin.Id = id
-		insulin.Name = name
-		if record.InsulinId == id {
-			insulin.Selected = true
-		} else {
-			insulin.Selected = false
-		}
-		insulins = append(insulins, insulin)
-	}
-	record.InsulinOptions = insulins
-	tmpl.ExecuteTemplate(w, "EditRecord", record)
 	defer db.Close()
 }
 
@@ -429,4 +346,149 @@ func NewRecord(w http.ResponseWriter, r *http.Request) {
 		record.Items = myItems
 	}
 	tmpl.ExecuteTemplate(w, "NewRecord", record)
+}
+
+func EditRecord(w http.ResponseWriter, r *http.Request) {
+	db := dbConn()
+	log.Println("Edit Record")
+	nId, _ := strconv.Atoi(r.URL.Query().Get("id"))
+	log.Println("id = ", nId)
+	myItems := []Item{}
+	record := Record{}
+	session, _ := store.Get(r, "mysession")
+	sessionItem := session.Values["myitems"]
+	sessionRecord := session.Values["myRecord"]
+	if sessionItem != nil {
+		strItems := session.Values["myitems"].(string)
+		json.Unmarshal([]byte(strItems), &myItems)
+		record.Items = myItems
+	}
+	if sessionRecord != nil {
+		strRecord := session.Values["myRecord"].(string)
+		json.Unmarshal([]byte(strRecord), &record)
+
+	} else {
+		sqlStatement := "SELECT " +
+			" A.id, A.meal_id, B.name as meal_name, A.insulin_id, D.name as insulin_name, A.gbm, A.gam, A.dose, A.creation_date " +
+			" FROM public.records A " +
+			" LEFT JOIN meals B on A.meal_id = B.ID " +
+			" LEFT JOIN insulins D on A.insulin_id = D.id " +
+			" WHERE a.id = $1"
+		log.Println(sqlStatement)
+		selDB, err := db.Query(sqlStatement, nId)
+		if err != nil {
+			panic(err.Error())
+		}
+		for selDB.Next() {
+			var id, mealid, insulinid int
+			var mealname, insulinname string
+			var gbm, gam, dose float64
+			var created time.Time
+			err = selDB.Scan(&id, &mealid, &mealname, &insulinid, &insulinname, &gbm, &gam, &dose, &created)
+			if err != nil {
+				panic(err.Error())
+			}
+			record.Id = id
+			record.MealId = mealid
+			record.MealName = mealname
+			record.InsulinId = insulinid
+			record.InsulinName = insulinname
+			record.Gbm = gbm
+			record.Gam = gam
+			record.Dose = dose
+			record.Created = created
+		}
+		sqlStatement = "SELECT " +
+			"	a.id," +
+			"	a.food_id," +
+			"	b.name as food_name," +
+			"	a.unit_id," +
+			"	c.symbol as unit_symbol," +
+			"	a.quantity," +
+			"	a.cho " +
+			" from " +
+			"	items a" +
+			" left join " +
+			"	foods b " +
+			" on a.food_id = b.id" +
+			" left join " +
+			"	units c " +
+			" on a.unit_id = c.id" +
+			" where record_id = $1"
+		log.Println(sqlStatement)
+		selDB, err = db.Query(sqlStatement, nId)
+		if err != nil {
+			panic(err.Error())
+		}
+		item := Item{}
+		for selDB.Next() {
+			var id, foodid, unitid int
+			var foodName, unitSymbol string
+			var quantity, CHO float64
+			err = selDB.Scan(&id, &foodid, &foodName, &unitid, &unitSymbol, &quantity, &CHO)
+			if err != nil {
+				panic(err.Error())
+			}
+			item.Id = strconv.Itoa(id)
+			item.FoodId = foodid
+			item.UnitId = unitid
+			item.FoodName = foodName
+			item.UnitSymbol = unitSymbol
+			item.Quantity = quantity
+			item.CHO = CHO
+			record.Items = append(record.Items, item)
+		}
+		bytesItems, _ := json.Marshal(record.Items)
+		session.Values["myitems"] = string(bytesItems)
+		sessions.Save(r, w)
+	}
+
+	selMealsDB, err := db.Query("SELECT id, name FROM Meals")
+	if err != nil {
+		panic(err.Error())
+	}
+	meal := Meal{}
+	meals := []Meal{}
+	for selMealsDB.Next() {
+		var id int
+		var name string
+		err = selMealsDB.Scan(&id, &name)
+		if err != nil {
+			panic(err.Error())
+		}
+		meal.Id = id
+		meal.Name = name
+		if record.MealId == id {
+			meal.Selected = true
+		} else {
+			meal.Selected = false
+		}
+		meals = append(meals, meal)
+	}
+	record.MealOptions = meals
+	selInsulinsDB, err := db.Query("SELECT id, name FROM Insulins")
+	if err != nil {
+		panic(err.Error())
+	}
+	insulin := Insulin{}
+	insulins := []Insulin{}
+	for selInsulinsDB.Next() {
+		var id int
+		var name string
+		err = selInsulinsDB.Scan(&id, &name)
+		if err != nil {
+			panic(err.Error())
+		}
+		insulin.Id = id
+		insulin.Name = name
+		if record.InsulinId == id {
+			insulin.Selected = true
+		} else {
+			insulin.Selected = false
+		}
+		insulins = append(insulins, insulin)
+	}
+	record.InsulinOptions = insulins
+	tmpl.ExecuteTemplate(w, "EditRecord", record)
+	defer db.Close()
 }
