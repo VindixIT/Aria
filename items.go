@@ -131,13 +131,15 @@ func ShowItem(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "mysession")
 	item := Item{}
 	if session != nil{
-		strItems := session.Values["myitems"].(string)
-		myItems := []Item{}
-		json.Unmarshal([]byte(strItems), &myItems)
-		for i := range myItems{
-			if myItems[i].Id == strconv.Itoa(nId){
-				item = myItems[i]
-				break
+		if session.Values["myitems"] != nil{
+			strItems := session.Values["myitems"].(string)
+			myItems := []Item{}
+			json.Unmarshal([]byte(strItems), &myItems)
+			for i := range myItems{
+				if myItems[i].Id == strconv.Itoa(nId){
+					item = myItems[i]
+					break
+				}
 			}
 		}
 	} else {

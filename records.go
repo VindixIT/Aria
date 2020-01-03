@@ -123,6 +123,7 @@ func ShowRecord(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	log.Println("Show Record")
 	nId := r.URL.Query().Get("id")
+	session, _ := store.Get(r, "mysession")
 	sqlStatement := "SELECT " +
 		" A.id, A.meal_id, B.name as meal_name, A.insulin_id, D.name as insulin_name, A.gbm, A.gam, A.dose, A.creation_date " +
 		" FROM public.records A " +
@@ -194,6 +195,9 @@ func ShowRecord(w http.ResponseWriter, r *http.Request) {
 		item.CHO = CHO
 		record.Items = append(record.Items, item)
 	}
+	bytesItems, _ := json.Marshal(record.Items)
+	session.Values["myitems"] = string(bytesItems)
+	sessions.Save(r, w)
 	tmpl.ExecuteTemplate(w, "ShowRecord", record)
 	defer db.Close()
 }

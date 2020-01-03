@@ -3,6 +3,7 @@
     {{ template "Menu" }} 
    <h2>Edit Record</h2>  
     <form method="POST" action="updateRecord">      
+      <input type="hidden" value="{{.Id}}" name="uid" />
       <label> Meal Type </label>
       <select id="mealid" name="mealid">        
           {{range $m := .MealOptions}}          
@@ -64,9 +65,21 @@
         <td> {{ .UnitSymbol }} </td>
         <td> {{ .Quantity }} </td>
         <td> {{ .CHO }} </td>
-        <td><a href="/showItem?id={{ .Id }}">View</a></td>
-        <td><a href="/editItem?id={{ .Id }}">Edit</a></td>
-        <td><a href="/deleteItem?id={{ .Id }}">Delete</a><td>                
+        <td><input 
+          type="button" 
+          value="View" 
+          onClick="window.open('http://localhost:5000/showItem?id={{ .Id }}', 'modal', 'toolbar=yes,scrollbars=yes,resizable=no,top=200,left=200,width=400,height=400');"
+        /></td>         
+        <td><input 
+          type="button" 
+          value="Edit" 
+          onClick="window.open('http://localhost:5000/editItem?id={{ .Id }}', 'modal', 'toolbar=yes,scrollbars=yes,resizable=no,top=200,left=200,width=400,height=400');"
+        /></td>  
+        <td><input 
+          type="button" 
+          value="Delete" 
+          onClick="window.open('http://localhost:5000/deleteItem?id={{ .Id }}', 'modal', 'toolbar=yes,scrollbars=yes,resizable=no,top=200,left=200,width=400,height=400');"
+        /></td>            
       </tr>
     {{ end }}
        </tbody>
