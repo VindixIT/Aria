@@ -423,7 +423,7 @@ func EditRecord(w http.ResponseWriter, r *http.Request) {
 		selDB, err = db.Query(sqlStatement, nId)
 		if err != nil {
 			panic(err.Error())
-		}
+		} //megadeath
 		item := Item{}
 		for selDB.Next() {
 			var id, foodid, unitid int
