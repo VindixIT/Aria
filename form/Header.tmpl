@@ -25,6 +25,15 @@
                 document.getElementById('unitSymbol').value = u.options[u.selectedIndex].text;
                 document.getElementById('ItemForm').submit();
             }
+            function deleteItem(id) {               
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                    }
+                };
+                xhttp.open("GET", "/deleteItem?id="+id, true);
+                xhttp.send();
+            }
         </script>
     </head>
     <body>

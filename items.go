@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/sessions"
 	_ "github.com/heroku/x/hmetrics/onload"
@@ -30,7 +31,7 @@ type Item struct {
 }
 
 func InsertItem(rw http.ResponseWriter, request *http.Request) {
-	log.Println("Insert Item")
+	log.Println("*** Insert Item ***")
 	if request.Method == "POST" {
 		tmp := "tmp"
 		foodid, _ := strconv.Atoi(request.FormValue("foodid"))
@@ -63,6 +64,7 @@ func InsertItem(rw http.ResponseWriter, request *http.Request) {
 		}
 		for index := range myItems {
 			item := myItems[index]
+			log.Println("Id: " + item.Id)
 			log.Println("FoodId: " + strconv.Itoa(item.FoodId))
 			log.Println("FoodName: " + item.FoodName)
 			log.Println("UnitId: " + strconv.Itoa(item.UnitId))
@@ -130,13 +132,13 @@ func ShowItem(w http.ResponseWriter, r *http.Request) {
 	nId, _ := strconv.Atoi(r.URL.Query().Get("id"))
 	session, _ := store.Get(r, "mysession")
 	item := Item{}
-	if session != nil{
-		if session.Values["myitems"] != nil{
+	if session != nil {
+		if session.Values["myitems"] != nil {
 			strItems := session.Values["myitems"].(string)
 			myItems := []Item{}
 			json.Unmarshal([]byte(strItems), &myItems)
-			for i := range myItems{
-				if myItems[i].Id == strconv.Itoa(nId){
+			for i := range myItems {
+				if myItems[i].Id == strconv.Itoa(nId) {
 					item = myItems[i]
 					break
 				}
@@ -172,9 +174,9 @@ func ShowItem(w http.ResponseWriter, r *http.Request) {
 			item.CHO = CHO
 		}
 		defer db.Close()
-	} 
+	}
 	tmpl.ExecuteTemplate(w, "ShowItem", item)
-	
+
 }
 
 func EditItem(w http.ResponseWriter, r *http.Request) {
@@ -278,17 +280,36 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteItem(w http.ResponseWriter, r *http.Request) {
-	db := dbConn()
-	log.Println("Delete Item")
+	log.Println("*** Delete Item ***")
 	id := r.URL.Query().Get("id")
-	delForm, err := db.Prepare("DELETE FROM Items WHERE id=$1")
-	if err != nil {
-		panic(err.Error())
+	myItems := []Item{}
+	updatedItems := []Item{}
+	session, _ := store.Get(r, "mysession")
+	sessionItem := session.Values["myitems"]
+	if sessionItem != nil {
+		strItems := session.Values["myitems"].(string)
+		json.Unmarshal([]byte(strItems), &myItems)
+		for index := range myItems {
+			myItem := myItems[index]
+			if myItem.Id != id {
+				updatedItems = append(updatedItems, myItem)
+			}
+		}
+		bytesItems, _ := json.Marshal(updatedItems)
+		session.Values["myitems"] = string(bytesItems)
+		sessions.Save(r, w)
 	}
-	delForm.Exec(id)
-	log.Println("DELETE: Id: " + id)
-	defer db.Close()
-	http.Redirect(w, r, "/listItems", 301)
+	if !strings.HasPrefix(id, "tmp") {
+		db := dbConn()
+		delForm, err := db.Prepare("DELETE FROM Items WHERE id=$1")
+		if err != nil {
+			panic(err.Error())
+		}
+		delForm.Exec(id)
+		log.Println("DELETE: Id: " + id)
+		defer db.Close()
+	}
+	http.Redirect(w, r, "ReloadWindow", 301)
 }
 
 func NewItem(w http.ResponseWriter, r *http.Request) {

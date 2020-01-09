@@ -24,7 +24,7 @@ func InitDB(db *sql.DB) {
 	InitMeasuresTable(db)
 	InitRecordsTable(db)
 	InitItemsTable(db)
-	
+
 	log.Println("InitDB Sucesso")
 }
 

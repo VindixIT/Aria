@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/sessions"
@@ -245,6 +246,13 @@ func InsertRecord(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateRecord(w http.ResponseWriter, r *http.Request) {
+	myItems := []Item{}
+	session, _ := store.Get(r, "mysession")
+	sessionItem := session.Values["myitems"]
+	if sessionItem != nil {
+		strItems := session.Values["myitems"].(string)
+		json.Unmarshal([]byte(strItems), &myItems)
+	}
 	db := dbConn()
 	log.Println("Update Record")
 	if r.Method == "POST" {
@@ -261,6 +269,18 @@ func UpdateRecord(w http.ResponseWriter, r *http.Request) {
 		}
 		updtForm.Exec(mealid, insulinid, gbm, gam, dose, id)
 		log.Println("UPDATE: Id: " + id + " | MealId: " + mealid + " | InsulinId: " + insulinid + " | GBM: " + gbm + " | GAM: " + gam + " | Dose: " + dose)
+		for index := range myItems {
+			myItem := myItems[index]
+			if strings.HasPrefix(myItem.Id, "tmp") {
+				sqlStatement := "INSERT INTO Items(record_id,food_id,unit_id,quantity,cho) VALUES ($1,$2,$3,$4,$5) RETURNING id"
+				itemId := 0
+				err := db.QueryRow(sqlStatement, id, myItem.FoodId, myItem.UnitId, myItem.Quantity, myItem.CHO).Scan(&itemId)
+				if err != nil {
+					panic(err.Error())
+				}
+				log.Println("INSERT: Id: " + strconv.Itoa(itemId))
+			}
+		}
 	}
 	defer db.Close()
 	http.Redirect(w, r, "/listRecords", 301)
@@ -365,12 +385,17 @@ func EditRecord(w http.ResponseWriter, r *http.Request) {
 	if sessionItem != nil {
 		strItems := session.Values["myitems"].(string)
 		json.Unmarshal([]byte(strItems), &myItems)
-		record.Items = myItems
+		log.Println(strItems)
+		for index := range myItems {
+			myItem := myItems[index]
+			if strings.HasPrefix(myItem.Id, "tmp") {
+				record.Items = append(record.Items, myItem)
+			}
+		}
 	}
 	if sessionRecord != nil {
 		strRecord := session.Values["myRecord"].(string)
 		json.Unmarshal([]byte(strRecord), &record)
-
 	} else {
 		sqlStatement := "SELECT " +
 			" A.id, A.meal_id, B.name as meal_name, A.insulin_id, D.name as insulin_name, A.gbm, A.gam, A.dose, A.creation_date " +
@@ -423,7 +448,7 @@ func EditRecord(w http.ResponseWriter, r *http.Request) {
 		selDB, err = db.Query(sqlStatement, nId)
 		if err != nil {
 			panic(err.Error())
-		} //megadeath
+		}
 		item := Item{}
 		for selDB.Next() {
 			var id, foodid, unitid int
@@ -440,7 +465,19 @@ func EditRecord(w http.ResponseWriter, r *http.Request) {
 			item.UnitSymbol = unitSymbol
 			item.Quantity = quantity
 			item.CHO = CHO
-			record.Items = append(record.Items, item)
+			found := false
+			for i := range record.Items {
+				myItem := record.Items[i]
+				log.Println("item.Id: " + item.Id)
+				if myItem.Id == item.Id {
+					found = true
+					log.Println(found)
+					record.Items[i] = item
+				}
+			}
+			if !found {
+				record.Items = append(record.Items, item)
+			}
 		}
 		bytesItems, _ := json.Marshal(record.Items)
 		session.Values["myitems"] = string(bytesItems)

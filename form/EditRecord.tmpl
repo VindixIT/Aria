@@ -3,7 +3,7 @@
     {{ template "Menu" }} 
    <h2>Edit Record</h2>  
     <form method="POST" action="updateRecord">      
-      <input type="hidden" value="{{.Id}}" name="uid" />
+      <input type="text" value="{{.Id}}" name="uid" />
       <label> Meal Type </label>
       <select id="mealid" name="mealid">        
           {{range $m := .MealOptions}}          
@@ -38,7 +38,7 @@
       <input 
         type="submit" 
         value="New Item" 
-        formaction="editRecord"
+        formaction="editRecord?id={{.Id}}"
         onClick="window.open('http://localhost:5000/newItem', 'modal', 'toolbar=yes,scrollbars=yes,resizable=no,top=200,left=200,width=400,height=400');"/>
         <br />
       <input type="submit" value="Save Record" />
@@ -77,8 +77,8 @@
         /></td>  
         <td><input 
           type="button" 
-          value="Delete" 
-          onClick="window.open('http://localhost:5000/deleteItem?id={{ .Id }}', 'modal', 'toolbar=yes,scrollbars=yes,resizable=no,top=200,left=200,width=400,height=400');"
+          value="Delete"
+          onClick="deleteItem('{{ .Id }}')"
         /></td>            
       </tr>
     {{ end }}
