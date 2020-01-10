@@ -385,7 +385,7 @@ func EditRecord(w http.ResponseWriter, r *http.Request) {
 	if sessionItem != nil {
 		strItems := session.Values["myitems"].(string)
 		json.Unmarshal([]byte(strItems), &myItems)
-		log.Println(strItems)
+		log.Println("strItems: " + strItems)
 		for index := range myItems {
 			myItem := myItems[index]
 			if strings.HasPrefix(myItem.Id, "tmp") {
@@ -434,7 +434,8 @@ func EditRecord(w http.ResponseWriter, r *http.Request) {
 			"	a.unit_id," +
 			"	c.symbol as unit_symbol," +
 			"	a.quantity," +
-			"	a.cho " +
+			"	a.cho," +
+			"	a.record_id " +
 			" from " +
 			"	items a" +
 			" left join " +
@@ -452,9 +453,9 @@ func EditRecord(w http.ResponseWriter, r *http.Request) {
 		item := Item{}
 		for selDB.Next() {
 			var id, foodid, unitid int
-			var foodName, unitSymbol string
+			var foodName, unitSymbol, recordid string
 			var quantity, CHO float64
-			err = selDB.Scan(&id, &foodid, &foodName, &unitid, &unitSymbol, &quantity, &CHO)
+			err = selDB.Scan(&id, &foodid, &foodName, &unitid, &unitSymbol, &quantity, &CHO, &recordid)
 			if err != nil {
 				panic(err.Error())
 			}
@@ -465,6 +466,7 @@ func EditRecord(w http.ResponseWriter, r *http.Request) {
 			item.UnitSymbol = unitSymbol
 			item.Quantity = quantity
 			item.CHO = CHO
+			item.RecordId = recordid
 			found := false
 			for i := range record.Items {
 				myItem := record.Items[i]

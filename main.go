@@ -96,7 +96,7 @@ func main() {
 	http.HandleFunc("/editItem", EditItem)
 	http.HandleFunc("/insertItem", InsertItem)
 	http.HandleFunc("/updateItem", UpdateItem)
-	http.HandleFunc("/deleteItem", DeleteItem)
+	http.HandleFunc("/quina", RemoveItem)
 	http.HandleFunc("/newRecord", NewRecord)
 	http.HandleFunc("/showRecord", ShowRecord)
 	http.HandleFunc("/editRecord", EditRecord)

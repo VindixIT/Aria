@@ -39,10 +39,10 @@
         type="submit" 
         value="New Item" 
         formaction="editRecord?id={{.Id}}"
-        onClick="window.open('http://localhost:5000/newItem', 'modal', 'toolbar=yes,scrollbars=yes,resizable=no,top=200,left=200,width=400,height=400');"/>
+        onClick="window.open('http://localhost:5000/newItem?recordid={{.Id}}', 'modal', 'toolbar=yes,scrollbars=yes,resizable=no,top=200,left=200,width=400,height=400');"/>
         <br />
       <input type="submit" value="Save Record" />
-    </form><br />
+    <br />
     <h4> Record Items </h4>
     <table border="1">
       <thead>
@@ -76,7 +76,8 @@
           onClick="window.open('http://localhost:5000/editItem?id={{ .Id }}', 'modal', 'toolbar=yes,scrollbars=yes,resizable=no,top=200,left=200,width=400,height=400');"
         /></td>  
         <td><input 
-          type="button" 
+          type="submit"
+          formaction="editRecord?id={{ .RecordId }}"
           value="Delete"
           onClick="deleteItem('{{ .Id }}')"
         /></td>            
@@ -84,5 +85,6 @@
     {{ end }}
        </tbody>
     </table>
+</form>
   {{ template "Footer" }}
 {{ end }}

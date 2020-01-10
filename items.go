@@ -18,6 +18,7 @@ var store = sessions.NewCookieStore([]byte("mysession"))
 
 type Item struct {
 	Id          string  `json:"id"`
+	RecordId    string  `json:"recordid"`
 	Food        string  `json:"food"`
 	FoodId      int     `json:"foodid"`
 	FoodName    string  `json:"foodname"`
@@ -40,8 +41,9 @@ func InsertItem(rw http.ResponseWriter, request *http.Request) {
 		unitSymbol := request.FormValue("unitSymbol")
 		quantity, _ := strconv.ParseFloat(request.FormValue("quantity"), 64)
 		CHO, _ := strconv.ParseFloat(request.FormValue("CHO"), 64)
+		recordid := request.FormValue("recordid")
 		log.Println("FoodName: " + foodName + " | UnitSymbol: " + unitSymbol)
-		log.Println("Create in SESSION: FoodId: " + fmt.Sprint(foodid) + " | UnitId: " + fmt.Sprint(unitid) + " | Quantity: " + fmt.Sprint(quantity) + " | CHO: " + fmt.Sprint(CHO))
+		log.Println("Create in SESSION: RecordId: " + recordid + " | FoodId: " + fmt.Sprint(foodid) + " | UnitId: " + fmt.Sprint(unitid) + " | Quantity: " + fmt.Sprint(quantity) + " | CHO: " + fmt.Sprint(CHO))
 		session, _ := store.Get(request, "mysession")
 		sessionItem := session.Values["myitems"]
 		newItem := Item{
@@ -51,6 +53,7 @@ func InsertItem(rw http.ResponseWriter, request *http.Request) {
 			UnitId:     unitid,
 			Quantity:   quantity,
 			CHO:        CHO,
+			RecordId:   recordid,
 		}
 		myItems := []Item{}
 		if sessionItem == nil {
@@ -71,6 +74,7 @@ func InsertItem(rw http.ResponseWriter, request *http.Request) {
 			log.Println("UnitSymbol: " + item.UnitSymbol)
 			log.Println("Quantity: " + fmt.Sprintf("%f", item.Quantity))
 			log.Println("CHO: " + fmt.Sprintf("%f", item.CHO))
+			log.Println("RecordId: " + item.RecordId)
 		}
 		bytesItems, _ := json.Marshal(myItems)
 		session.Values["myitems"] = string(bytesItems)
@@ -184,18 +188,18 @@ func EditItem(w http.ResponseWriter, r *http.Request) {
 	log.Println("Edit Item")
 	nId := r.URL.Query().Get("id")
 	selDB, err := db.Query("SELECT "+
-		" A.id, B.id, C.id, A.quantity, A.CHO "+
+		" A.id, B.id, C.id, A.quantity, A.CHO, A.record_id "+
 		" FROM Items A left join Foods B "+
-		" on A.food_id = B.id left join Units C on A.unit_id = C.id WHERE a.id=$1", nId)
+		" on A.food_id = B.id left join Units C on A.unit_id = C.id WHERE A.id=$1", nId)
 	if err != nil {
 		panic(err.Error())
 	}
 	item := Item{}
 	for selDB.Next() {
 		var id, foodid, unitid int
-		var foodName, unitSymbol string
+		var recordid, foodName, unitSymbol string
 		var quantity, CHO float64
-		err = selDB.Scan(&id, &foodid, &unitid, &quantity, &CHO)
+		err = selDB.Scan(&id, &foodid, &unitid, &quantity, &CHO, &recordid)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -206,6 +210,7 @@ func EditItem(w http.ResponseWriter, r *http.Request) {
 		item.UnitSymbol = unitSymbol
 		item.Quantity = quantity
 		item.CHO = CHO
+		item.RecordId = recordid
 	}
 	selFoodsDB, err := db.Query("SELECT id, name FROM Foods")
 	if err != nil {
@@ -279,14 +284,16 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "CloseWindow", nil)
 }
 
-func DeleteItem(w http.ResponseWriter, r *http.Request) {
-	log.Println("*** Delete Item ***")
+func RemoveItem(w http.ResponseWriter, r *http.Request) {
+	log.Println("*** Remove Item ***")
 	id := r.URL.Query().Get("id")
+	log.Println("Delete id: " + id)
 	myItems := []Item{}
 	updatedItems := []Item{}
 	session, _ := store.Get(r, "mysession")
 	sessionItem := session.Values["myitems"]
 	if sessionItem != nil {
+		log.Println("PASSO 1")
 		strItems := session.Values["myitems"].(string)
 		json.Unmarshal([]byte(strItems), &myItems)
 		for index := range myItems {
@@ -299,6 +306,7 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 		session.Values["myitems"] = string(bytesItems)
 		sessions.Save(r, w)
 	}
+	log.Println("PASSO 2")
 	if !strings.HasPrefix(id, "tmp") {
 		db := dbConn()
 		delForm, err := db.Prepare("DELETE FROM Items WHERE id=$1")
@@ -309,12 +317,15 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 		log.Println("DELETE: Id: " + id)
 		defer db.Close()
 	}
-	http.Redirect(w, r, "ReloadWindow", 301)
+	log.Println("PASSO 3")
+	http.Redirect(w, r, "ReloadWindow", 200)
 }
 
 func NewItem(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	log.Println("New Item")
+	recordId := r.URL.Query().Get("recordid")
+	log.Println("recordid: " + recordId)
 	item := Item{}
 	selFoodsDB, err := db.Query("SELECT id, name FROM Foods")
 	if err != nil {
@@ -353,5 +364,6 @@ func NewItem(w http.ResponseWriter, r *http.Request) {
 		units = append(units, unit)
 	}
 	item.UnitOptions = units
+	item.RecordId = recordId
 	tmpl.ExecuteTemplate(w, "NewItem", item)
 }
