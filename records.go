@@ -374,7 +374,7 @@ func NewRecord(w http.ResponseWriter, r *http.Request) {
 
 func EditRecord(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
-	log.Println("Edit Record")
+	log.Println("*** Edit Record ***")
 	nId, _ := strconv.Atoi(r.URL.Query().Get("id"))
 	log.Println("id = ", nId)
 	myItems := []Item{}

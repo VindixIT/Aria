@@ -20,9 +20,9 @@
             }
             function submitItemForm(){
                 var f = document.getElementById('foodid');
-                document.getElementById('foodName').value = f.options[f.selectedIndex].text;
+                document.getElementById('foodName').value = f.options[f.selectedIndex].text;                
                 var u = document.getElementById('unitid');
-                document.getElementById('unitSymbol').value = u.options[u.selectedIndex].text;
+                document.getElementById('unitSymbol').value = u.options[u.selectedIndex].text;                
                 document.getElementById('ItemForm').submit();
             }
             function deleteItem(id) {         
@@ -33,7 +33,7 @@
                      
                     }
                 };
-                xhttp.open("GET", "/quina?id="+id, true);
+                xhttp.open("GET", "/removeItem?id="+id, true);
                 xhttp.send();   
    
             }
