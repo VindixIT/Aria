@@ -133,22 +133,30 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShowItem(w http.ResponseWriter, r *http.Request) {
-	nId, _ := strconv.Atoi(r.URL.Query().Get("id"))
+	log.Println("*** Show Item ***")
+	nId := r.URL.Query().Get("id")
 	session, _ := store.Get(r, "mysession")
 	item := Item{}
+	encontrado := false
 	if session != nil {
+		log.Println("session")
 		if session.Values["myitems"] != nil {
+			log.Println("myitems")
 			strItems := session.Values["myitems"].(string)
+			log.Println("strItems: " + strItems)
 			myItems := []Item{}
 			json.Unmarshal([]byte(strItems), &myItems)
 			for i := range myItems {
-				if myItems[i].Id == strconv.Itoa(nId) {
+				if myItems[i].Id == nId {
+					encontrado = true
 					item = myItems[i]
+					log.Println(myItems[i])
 					break
 				}
 			}
 		}
-	} else {
+	}
+	if !encontrado {
 		db := dbConn()
 		log.Println("Show Item")
 		sqlStatement := "SELECT " +
@@ -184,33 +192,53 @@ func ShowItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func EditItem(w http.ResponseWriter, r *http.Request) {
+	log.Println("*** Edit Item ***")
 	db := dbConn()
-	log.Println("Edit Item")
 	nId := r.URL.Query().Get("id")
-	selDB, err := db.Query("SELECT "+
-		" A.id, B.id, C.id, A.quantity, A.CHO, A.record_id "+
-		" FROM Items A left join Foods B "+
-		" on A.food_id = B.id left join Units C on A.unit_id = C.id WHERE A.id=$1", nId)
-	if err != nil {
-		panic(err.Error())
-	}
-	item := Item{}
-	for selDB.Next() {
-		var id, foodid, unitid int
-		var recordid, foodName, unitSymbol string
-		var quantity, CHO float64
-		err = selDB.Scan(&id, &foodid, &unitid, &quantity, &CHO, &recordid)
+	session, _ := store.Get(r, "mysession")
+	item := Item{} // ao abrir, a função é EditRecord
+	if session != nil {
+		log.Println("session")
+		if session.Values["myitems"] != nil {
+			log.Println("myitems")
+			strItems := session.Values["myitems"].(string)
+			log.Println("strItems: " + strItems)
+			myItems := []Item{}
+			json.Unmarshal([]byte(strItems), &myItems)
+			for i := range myItems {
+				if myItems[i].Id == nId {
+					item = myItems[i]
+					log.Println(myItems[i])
+					break
+				}
+			}
+		}
+	} else {
+		selDB, err := db.Query("SELECT "+
+			" A.id, B.id, C.id, A.quantity, A.CHO, A.record_id "+
+			" FROM Items A left join Foods B "+
+			" on A.food_id = B.id left join Units C on A.unit_id = C.id WHERE A.id=$1", nId)
 		if err != nil {
 			panic(err.Error())
 		}
-		item.Id = strconv.Itoa(id)
-		item.FoodId = foodid
-		item.UnitId = unitid
-		item.FoodName = foodName
-		item.UnitSymbol = unitSymbol
-		item.Quantity = quantity
-		item.CHO = CHO
-		item.RecordId = recordid
+		item := Item{}
+		for selDB.Next() {
+			var id, foodid, unitid int
+			var recordid, foodName, unitSymbol string
+			var quantity, CHO float64
+			err = selDB.Scan(&id, &foodid, &unitid, &quantity, &CHO, &recordid)
+			if err != nil {
+				panic(err.Error())
+			}
+			item.Id = strconv.Itoa(id)
+			item.FoodId = foodid
+			item.UnitId = unitid
+			item.FoodName = foodName
+			item.UnitSymbol = unitSymbol
+			item.Quantity = quantity
+			item.CHO = CHO
+			item.RecordId = recordid
+		}
 	}
 	selFoodsDB, err := db.Query("SELECT id, name FROM Foods")
 	if err != nil {
@@ -264,23 +292,60 @@ func EditItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateItem(w http.ResponseWriter, r *http.Request) {
-	db := dbConn()
-	log.Println("Update Item")
+	log.Println("*** Update Item ***")
 	if r.Method == "POST" {
 		foodid := r.FormValue("foodid")
 		unitid := r.FormValue("unit")
+		foodName := r.FormValue("foodName")
+		unitSymbol := r.FormValue("unitSymbol")
 		quantity := r.FormValue("quantity")
 		CHO := r.FormValue("CHO")
 		id := r.FormValue("uid")
-		sqlStatement := "UPDATE Items SET food_id=$1, unit_id=$2, quantity=$3, cho=$4 WHERE id=$5"
-		updtForm, err := db.Prepare(sqlStatement)
-		if err != nil {
-			panic(err.Error())
+		session, _ := store.Get(r, "mysession")
+		encontrado := false
+		updatedItems := []Item{}
+		editedItem := Item{}
+		editedItem.Id = id
+		editedItem.FoodId, _ = strconv.Atoi(foodid)
+		editedItem.UnitId, _ = strconv.Atoi(unitid)
+		editedItem.Quantity, _ = strconv.ParseFloat(quantity, 64)
+		editedItem.CHO, _ = strconv.ParseFloat(CHO, 64)
+		editedItem.FoodName = foodName
+		editedItem.UnitSymbol = unitSymbol
+		if session != nil {
+			log.Println("session")
+			if session.Values["myitems"] != nil {
+				log.Println("myitems")
+				strItems := session.Values["myitems"].(string)
+				log.Println("strItems: " + strItems)
+				myItems := []Item{}
+				json.Unmarshal([]byte(strItems), &myItems)
+				for index := range myItems {
+					myItem := myItems[index]
+					if myItem.Id != id {
+						updatedItems = append(updatedItems, myItem)
+					} else {
+						encontrado = true
+						updatedItems = append(updatedItems, editedItem)
+					}
+				}
+				bytesItems, _ := json.Marshal(updatedItems)
+				session.Values["myitems"] = string(bytesItems)
+				sessions.Save(r, w)
+			}
 		}
-		updtForm.Exec(foodid, unitid, quantity, CHO, id)
-		log.Println("UPDATE: Id: " + id + " | FoodId: " + foodid + " | UnitId: " + unitid + " | Quantity: " + quantity + " | CHO: " + CHO)
+		if !encontrado {
+			db := dbConn()
+			sqlStatement := "UPDATE Items SET food_id=$1, unit_id=$2, quantity=$3, cho=$4 WHERE id=$5"
+			updtForm, err := db.Prepare(sqlStatement)
+			if err != nil {
+				panic(err.Error())
+			}
+			updtForm.Exec(foodid, unitid, quantity, CHO, id)
+			log.Println("UPDATE: Id: " + id + " | FoodId: " + foodid + " | UnitId: " + unitid + " | Quantity: " + quantity + " | CHO: " + CHO)
+			defer db.Close()
+		}
 	}
-	defer db.Close()
 	tmpl.ExecuteTemplate(w, "CloseWindow", nil)
 }
 
@@ -293,7 +358,6 @@ func RemoveItem(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "mysession")
 	sessionItem := session.Values["myitems"]
 	if sessionItem != nil {
-		log.Println("PASSO 1")
 		strItems := session.Values["myitems"].(string)
 		json.Unmarshal([]byte(strItems), &myItems)
 		for index := range myItems {
@@ -306,7 +370,6 @@ func RemoveItem(w http.ResponseWriter, r *http.Request) {
 		session.Values["myitems"] = string(bytesItems)
 		sessions.Save(r, w)
 	}
-	log.Println("PASSO 2")
 	if !strings.HasPrefix(id, "tmp") {
 		db := dbConn()
 		delForm, err := db.Prepare("DELETE FROM Items WHERE id=$1")
@@ -317,7 +380,6 @@ func RemoveItem(w http.ResponseWriter, r *http.Request) {
 		log.Println("DELETE: Id: " + id)
 		defer db.Close()
 	}
-	log.Println("PASSO 3")
 	http.Redirect(w, r, "ReloadWindow", 200)
 }
 
