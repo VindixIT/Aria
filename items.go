@@ -334,7 +334,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 				sessions.Save(r, w)
 			}
 		}
-		if !encontrado {
+		if !encontrado { // OLHA SO, AQUI NAO ERA PARA A GENTE DAR UPDATE NO BANCO. SÓ O RECORD QUE TEM ESSE PODER. VOU MIJAR
 			db := dbConn()
 			sqlStatement := "UPDATE Items SET food_id=$1, unit_id=$2, quantity=$3, cho=$4 WHERE id=$5"
 			updtForm, err := db.Prepare(sqlStatement)
